@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha do Saber — Escolha sua aventura</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:'Nunito',sans-serif;color:#f7ead1;padding:24px;
+    background:
+      radial-gradient(1000px 600px at 80% -10%, #17677d 0%, transparent 55%),
+      radial-gradient(800px 600px at 10% 110%, #0d4557 0%, transparent 50%),
+      linear-gradient(180deg,#0f4c5e,#082b3a);
+  }
+  h1{font-family:'Baloo 2';font-size:clamp(30px,5vw,46px);letter-spacing:.03em;text-shadow:0 3px 0 rgba(0,0,0,.3)}
+  h1 em{font-style:normal;color:#ffc94d}
+  p.sub{margin:8px 0 34px;font-weight:700;color:rgba(247,234,209,.6);letter-spacing:.06em;text-transform:uppercase;font-size:13px}
+  .cards{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;max-width:900px}
+  a.card{
+    display:block;width:min(400px,90vw);text-decoration:none;color:inherit;
+    background:rgba(7,33,45,.75);border:1px solid rgba(247,234,209,.15);border-radius:20px;
+    overflow:hidden;transition:transform .2s ease, box-shadow .2s ease;
+  }
+  a.card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+  .thumb{height:190px;background-size:cover;background-position:center 30%}
+  .t1{background-image:url('prototipo/assets/mapa-mat.png')}
+  .t2{background-image:url('prototipo-89/assets/cidade.png')}
+  .info{padding:16px 20px 20px}
+  .info h2{font-family:'Baloo 2';font-size:22px;margin-bottom:4px}
+  .info p{font-size:13.5px;color:rgba(247,234,209,.65);font-weight:600;line-height:1.45}
+  .tag{display:inline-block;margin-top:10px;font-family:'Baloo 2';font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    background:linear-gradient(135deg,#ffc94d,#f0a32b);color:#3a2a05;padding:4px 12px;border-radius:99px;font-weight:800}
+  .tag.gta{background:linear-gradient(135deg,#c084fc,#8b5cf6);color:#150826}
+  footer{margin-top:34px;font-size:12px;color:rgba(247,234,209,.4);font-weight:600}
+</style>
+</head>
+<body>
+  <h1>Trilha do <em>Saber</em></h1>
+  <p class="sub">escolha sua aventura</p>
+  <div class="cards">
+    <a class="card" href="./prototipo/">
+      <div class="thumb t1"></div>
+      <div class="info">
+        <h2>🧭 Expedição do Saber</h2>
+        <p>Mapa de ilhas do tesouro com trilhas, estrelas, chefões e ofensiva — para o 6º e 7º ano.</p>
+        <span class="tag">6º / 7º ano</span>
+      </div>
+    </a>
+    <a class="card" href="./prototipo-89/">
+      <div class="thumb t2"></div>
+      <div class="info">
+        <h2>🌆 GTA: Grande Trilha do Aprendizado</h2>
+        <p>Cidade aberta estilo GTA: dirija o aluno pelas ruas, domine distritos e missões de elite — para o 8º e 9º ano.</p>
+        <span class="tag gta">8º / 9º ano</span>
+      </div>
+    </a>
+  </div>
+  <footer>protótipo educacional · feito com apoio de IA</footer>
+</body>
+</html>

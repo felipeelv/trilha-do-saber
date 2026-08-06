@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTA — Grande Trilha do Aprendizado · 8º/9º ano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ocean-1:#0f4c5e;
+    --ocean-2:#082b3a;
+    --cream:#f7ead1;
+    --cream-dim:rgba(247,234,209,.55);
+    --gold:#ffc94d;
+    --gold-2:#f0a32b;
+    --gold-deep:#b97b1e;
+    --green:#3ecf94;
+    --green-2:#22a374;
+    --coral:#ff6b5e;
+    --red:#e4572e;
+    --red-2:#a83548;
+    --ink:#2e2318;
+    --ink-soft:#6b573d;
+    --locked:#314c5b;
+    --locked-b:#527184;
+    --glass:rgba(7,33,45,.78);
+    --card-line:rgba(247,234,209,.13);
+    --sand:#dcae6b;
+    --sand-line:#b98a4e;
+    --grass:#69a35b;
+    --grass-2:#3e7c4f;
+    --parchment:#f8efda;
+    --parchment-2:#f1e0bd;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+
+  html,body{height:100%}
+
+  body{
+    font-family:'Barlow',sans-serif;
+    color:var(--cream);
+    background:
+      radial-gradient(1100px 700px at 75% -10%, #17677d 0%, transparent 55%),
+      radial-gradient(900px 700px at 5% 110%, #0d4557 0%, transparent 50%),
+      linear-gradient(180deg, var(--ocean-1) 0%, var(--ocean-2) 100%);
+    background-attachment:fixed;
+    overflow:hidden;
+  }
+
+  /* grade cartográfica sutil + grão */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(247,234,209,.035) 0 1px, transparent 1px 84px),
+      repeating-linear-gradient(90deg, rgba(247,234,209,.035) 0 1px, transparent 1px 84px);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.055;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(247,234,209,.18);border-radius:8px;border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(247,234,209,.32);border:2px solid transparent;background-clip:content-box}
+  /* barra de rolagem do mapa: sempre visível e destacada */
+  .map-scroll::-webkit-scrollbar{width:13px}
+  .map-scroll::-webkit-scrollbar-track{background:rgba(6,28,38,.5);border-radius:8px}
+  .map-scroll::-webkit-scrollbar-thumb{background:rgba(240,163,43,.55);border-radius:8px;border:3px solid rgba(6,28,38,.9);background-clip:content-box}
+  .map-scroll::-webkit-scrollbar-thumb:hover{background:rgba(240,163,43,.85);border:3px solid rgba(6,28,38,.9);background-clip:content-box}
+
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  button:focus-visible{outline:2px dashed var(--gold);outline-offset:3px;border-radius:8px}
+
+  /* ============ TOPO ============ */
+  .topbar{
+    position:relative;z-index:5;
+    height:66px;padding:0 22px;
+    display:flex;align-items:center;justify-content:space-between;gap:18px;
+    background:rgba(6,28,38,.82);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--card-line);
+  }
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .brand svg{flex:none}
+  .brand h1{
+    font-family:'Bebas Neue',sans-serif;font-weight:800;font-size:20px;letter-spacing:.06em;
+    text-transform:uppercase;line-height:1;color:var(--cream);
+  }
+  .brand small{display:block;font-family:'Barlow';font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-top:3px}
+
+  .player{display:flex;align-items:center;gap:16px}
+  .avatar-wrap{position:relative;width:52px;height:52px;flex:none}
+  .avatar-wrap svg{position:absolute;inset:0;transform:rotate(-90deg)}
+  .avatar{
+    position:absolute;inset:5px;border-radius:50%;overflow:hidden;
+    background:linear-gradient(145deg,#e8c078,#c98f45);
+    display:flex;align-items:center;justify-content:center;font-size:23px;
+    box-shadow:inset 0 -3px 6px rgba(0,0,0,.25);
+  }
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .xp-block{width:210px}
+  .xp-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+  .xp-top strong{font-family:'Bebas Neue';font-weight:700;font-size:14px}
+  .xp-top span{font-size:11px;font-weight:700;color:var(--cream-dim)}
+  .xp-bar{height:10px;border-radius:99px;background:rgba(247,234,209,.13);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.4)}
+  .xp-fill{
+    height:100%;width:0%;border-radius:99px;
+    background:linear-gradient(90deg,var(--gold-2),var(--gold));
+    box-shadow:0 0 10px rgba(255,201,77,.55);
+    transition:width .7s cubic-bezier(.22,1,.36,1);
+    position:relative;
+  }
+  .xp-fill::after{
+    content:"";position:absolute;inset:0;border-radius:99px;
+    background:linear-gradient(90deg,transparent 20%,rgba(255,255,255,.45) 50%,transparent 80%);
+    background-size:200% 100%;animation:shine 2.6s linear infinite;
+  }
+  @keyframes shine{from{background-position:200% 0}to{background-position:-200% 0}}
+
+  .stat-chip{
+    display:flex;align-items:center;gap:7px;
+    padding:7px 13px;border-radius:12px;
+    background:rgba(247,234,209,.07);
+    border:1px solid var(--card-line);
+    font-family:'Bebas Neue';font-weight:700;font-size:16px;
+  }
+  .stat-chip small{font-family:'Barlow';font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cream-dim)}
+  .stat-chip svg{flex:none}
+  .streak{color:var(--coral)}
+  .coins{color:var(--gold)}
+
+  /* ============ LAYOUT ============ */
+  .layout{
+    position:relative;z-index:2;
+    display:grid;grid-template-columns:minmax(0,1fr) 348px;grid-template-rows:minmax(0,1fr);gap:0;
+    height:calc(100vh - 66px);
+  }
+  .map-col{display:flex;flex-direction:column;min-width:0;min-height:0}
+
+  /* abas de disciplinas */
+  .tabs{
+    display:flex;gap:8px;padding:14px 26px 10px;flex-wrap:wrap;
+  }
+  .tab{
+    font-family:'Bebas Neue';font-weight:700;font-size:14px;letter-spacing:.02em;
+    color:var(--cream-dim);
+    padding:8px 18px;border-radius:99px;
+    border:1px solid var(--card-line);
+    background:rgba(247,234,209,.04);
+    transition:all .22s ease;
+    display:flex;align-items:center;gap:8px;
+  }
+  .tab:hover{color:var(--cream);transform:translateY(-1px);background:rgba(247,234,209,.09)}
+  .tab.active{
+    color:var(--ink);
+    background:linear-gradient(135deg,var(--gold),var(--gold-2));
+    border-color:transparent;
+    box-shadow:0 4px 14px rgba(240,163,43,.35);
+  }
+  .tab .mini-stars{font-size:11px;font-weight:800;opacity:.85}
+
+  .map-scroll{
+    flex:1;min-height:0;
+    overflow-y:scroll;overflow-x:hidden;scroll-behavior:smooth;
+    scrollbar-width:thin;scrollbar-color:rgba(240,163,43,.55) rgba(6,28,38,.5);
+  }
+
+  .map-head{text-align:center;padding:26px 20px 0}
+  .map-head h2{
+    font-family:'Bebas Neue';font-weight:800;font-size:clamp(26px,3.4vw,38px);letter-spacing:.01em;
+    text-shadow:0 3px 0 rgba(0,0,0,.28);
+  }
+  .map-head h2 em{font-style:normal;color:var(--gold)}
+  .map-head p{margin-top:4px;font-size:13px;font-weight:700;color:var(--cream-dim);letter-spacing:.05em}
+
+  .map-canvas{position:relative;max-width:900px;margin:0 auto}
+
+  /* modo arte: imagem ilustrada emoldurada */
+  .map-canvas.with-art{
+    border-radius:26px;overflow:hidden;
+    border:3px solid rgba(247,234,209,.2);
+    box-shadow:0 22px 55px rgba(0,0,0,.5), inset 0 0 0 1px rgba(0,0,0,.2);
+    margin-bottom:48px;
+  }
+  .map-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+
+  /* ============ SVG DA TRILHA ============ */
+  #mapSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .route{fill:none;stroke:rgba(247,234,209,.5);stroke-width:6;stroke-linecap:round;stroke-dasharray:.1 17}
+  .route-progress{fill:none;stroke:var(--gold);stroke-width:6;stroke-linecap:round;stroke-dasharray:.1 17;filter:drop-shadow(0 0 5px rgba(255,201,77,.7))}
+  .island-sand{fill:var(--sand);stroke:var(--sand-line);stroke-width:2}
+  .island-grass{fill:var(--grass);opacity:.96}
+  .contour{fill:none;stroke:rgba(247,234,209,.13);stroke-width:1.6;stroke-dasharray:3 9}
+  .tree{fill:var(--grass-2)}
+
+  /* ============ DECORAÇÕES ============ */
+  .deco{position:absolute;pointer-events:none}
+  .sign{
+    transform:translate(-50%,-50%);
+    background:linear-gradient(180deg,#8a5a33,#6d4423);
+    border:2px solid #55351c;
+    border-radius:10px;
+    padding:6px 14px;
+    font-family:'Bebas Neue';font-weight:700;font-size:13px;letter-spacing:.04em;
+    color:#ffe9c4;text-shadow:0 1px 0 rgba(0,0,0,.4);
+    box-shadow:0 4px 10px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.15);
+    white-space:nowrap;
+  }
+  .sign::before{content:"";position:absolute;left:50%;top:-5px;width:8px;height:8px;transform:translateX(-50%) rotate(45deg);background:#55351c;border-radius:2px}
+  .compass{opacity:.55;animation:spin 90s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .boat{animation:bob 3.4s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+  .cloud{
+    width:130px;height:38px;background:#fff;border-radius:99px;opacity:.09;filter:blur(1px);
+    animation:drift 9s ease-in-out infinite alternate;
+  }
+  .cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+  .cloud::before{width:52px;height:52px;top:-24px;left:22px}
+  .cloud::after{width:36px;height:36px;top:-15px;left:64px}
+  @keyframes drift{from{transform:translateX(-26px)}to{transform:translateX(30px)}}
+
+  .hint{
+    position:absolute;transform:translate(-50%,-100%);
+    background:var(--parchment);color:var(--ink);
+    font-family:'Bebas Neue';font-weight:700;font-size:13px;
+    padding:6px 13px;border-radius:12px;
+    box-shadow:0 5px 14px rgba(0,0,0,.35);
+    animation:hint-bounce 1.6s ease-in-out infinite;
+    white-space:nowrap;z-index:3;pointer-events:none;
+  }
+  .hint::after{
+    content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);
+    border:8px solid transparent;border-top-color:var(--parchment);border-bottom:none;
+  }
+  @keyframes hint-bounce{0%,100%{margin-top:0}50%{margin-top:-9px}}
+
+  /* ============ NÓS (FASES) ============ */
+  .node{
+    position:absolute;transform:translate(-50%,-50%);
+    display:flex;align-items:center;justify-content:center;
+    z-index:2;transition:transform .18s ease;
+  }
+  .node:hover{transform:translate(-50%,-50%) scale(1.07)}
+  .node:active{transform:translate(-50%,-50%) scale(.97)}
+
+  .medal{
+    position:relative;
+    width:62px;height:62px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Bebas Neue';font-weight:800;font-size:21px;
+    border:4px solid;
+    position:relative;
+    transition:box-shadow .2s ease;
+  }
+  .node.done .medal{
+    background:linear-gradient(145deg,var(--green),var(--green-2));
+    border-color:#b8f4d8;color:#063d27;
+    box-shadow:0 5px 0 rgba(6,61,39,.55), 0 8px 16px rgba(0,0,0,.3);
+  }
+  .node.available .medal{
+    background:linear-gradient(145deg,var(--gold),var(--gold-2));
+    border-color:#ffe9b8;color:#4a3205;
+    box-shadow:0 5px 0 rgba(122,74,4,.6), 0 8px 18px rgba(240,163,43,.4);
+  }
+  .node.available .medal::before{
+    content:"";position:absolute;inset:-11px;border-radius:50%;
+    border:3px solid var(--gold);
+    animation:pulse 1.9s ease-out infinite;
+  }
+  @keyframes pulse{0%{transform:scale(.78);opacity:.95}100%{transform:scale(1.3);opacity:0}}
+  .node.locked{ cursor:not-allowed }
+  .node.locked .medal{
+    background:linear-gradient(145deg,var(--locked),#243a46);
+    border-color:var(--locked-b);color:#8fb0c0;
+    box-shadow:0 5px 0 rgba(10,22,29,.6);
+  }
+  .node.locked:hover{transform:translate(-50%,-50%)}
+
+  /* chefão: escudo hexagonal */
+  .node.boss .medal{
+    width:76px;height:84px;border:none;border-radius:0;
+    clip-path:polygon(50% 0, 96% 24%, 96% 74%, 50% 100%, 4% 74%, 4% 24%);
+    background:linear-gradient(160deg,var(--red),var(--red-2));
+    color:#ffe9c4;font-size:30px;
+    box-shadow:none;
+    filter:drop-shadow(0 6px 0 rgba(60,10,20,.55)) drop-shadow(0 10px 16px rgba(0,0,0,.35));
+  }
+  .node.boss.available .medal{
+    background:linear-gradient(160deg,#ff7a3d,#c62f4d);
+    animation:boss-glow 1.6s ease-in-out infinite;
+  }
+  .node.boss.available .medal::before{display:none}
+  @keyframes boss-glow{
+    0%,100%{filter:drop-shadow(0 6px 0 rgba(60,10,20,.55)) drop-shadow(0 0 8px rgba(255,110,60,.5))}
+    50%{filter:drop-shadow(0 6px 0 rgba(60,10,20,.55)) drop-shadow(0 0 22px rgba(255,140,60,.95))}
+  }
+  .node.boss.done .medal{background:linear-gradient(160deg,#ffb03d,#d97b1f);color:#4a2a05}
+  .node.boss.locked .medal{background:linear-gradient(160deg,#3d5664,#2a3f4c);color:#8fb0c0}
+
+  .node .stars{
+    position:absolute;top:calc(100% + 3px);left:50%;transform:translateX(-50%);
+    display:flex;gap:1px;pointer-events:none;
+  }
+  .node .stars svg{width:14px;height:14px}
+  .node .stars .off{opacity:.22}
+  .node .label{
+    position:absolute;top:calc(100% + 20px);left:50%;transform:translateX(-50%);
+    width:150px;text-align:center;
+    font-family:'Bebas Neue';font-weight:600;font-size:12.5px;line-height:1.2;
+    color:var(--cream);text-shadow:0 2px 3px rgba(0,0,0,.6);
+    pointer-events:none;
+  }
+  .node.locked .label{color:rgba(247,234,209,.42)}
+  .node .gate{
+    position:absolute;top:calc(100% + 38px);left:50%;transform:translateX(-50%);
+    background:rgba(6,28,38,.85);border:1px solid var(--gold);
+    color:var(--gold);font-weight:800;font-size:11px;
+    padding:2px 9px;border-radius:99px;white-space:nowrap;pointer-events:none;
+  }
+
+  /* baú do tesouro final */
+  .chest{position:absolute;transform:translate(-50%,-50%);text-align:center;z-index:2}
+  .chest .label{position:static;transform:none;margin-top:8px;width:170px;font-family:'Bebas Neue';font-weight:700;font-size:13px;color:var(--cream);text-shadow:0 2px 3px rgba(0,0,0,.6)}
+  .chest.locked-chest{filter:grayscale(.85);opacity:.55}
+  .chest:not(.locked-chest){animation:chest-pop 1s ease}
+  @keyframes chest-pop{0%{transform:translate(-50%,-50%) scale(.4)}60%{transform:translate(-50%,-50%) scale(1.12)}100%{transform:translate(-50%,-50%) scale(1)}}
+
+  /* partículas */
+  .particle{
+    position:absolute;width:9px;height:9px;border-radius:50%;
+    pointer-events:none;z-index:6;
+    animation:pop .85s cubic-bezier(.16,.84,.44,1) forwards;
+  }
+  @keyframes pop{
+    0%{transform:translate(-50%,-50%) scale(1);opacity:1}
+    100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.15);opacity:0}
+  }
+
+  /* ============ SIDEBAR ============ */
+  .side{
+    min-height:0;
+    border-left:1px solid var(--card-line);
+    background:rgba(6,28,38,.45);
+    padding:20px 18px 30px;
+    overflow-y:auto;
+    display:flex;flex-direction:column;gap:16px;
+  }
+  .card{
+    background:var(--glass);
+    border:1px solid var(--card-line);
+    border-radius:18px;
+    padding:17px 18px;
+    backdrop-filter:blur(6px);
+  }
+  .card h3{
+    font-family:'Bebas Neue';font-weight:800;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:13px;display:flex;align-items:center;gap:8px;
+  }
+  .jrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13.5px;font-weight:700}
+  .jrow span{color:var(--cream-dim)}
+  .jrow strong{font-family:'Bebas Neue';font-size:15px}
+  .world-bar{height:9px;border-radius:99px;background:rgba(247,234,209,.12);overflow:hidden;margin-top:10px}
+  .world-fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,var(--gold-2),var(--gold));transition:width .7s cubic-bezier(.22,1,.36,1)}
+
+  .card.mission{border-color:rgba(255,201,77,.4);background:linear-gradient(160deg,rgba(240,163,43,.14),rgba(7,33,45,.85))}
+  .mission-name{font-family:'Bebas Neue';font-weight:800;font-size:18px;line-height:1.15}
+  .mission-unit{font-size:12px;font-weight:700;color:var(--cream-dim);margin:3px 0 13px}
+  .btn-gold{
+    display:block;width:100%;text-align:center;
+    font-family:'Bebas Neue';font-weight:800;font-size:15px;letter-spacing:.03em;
+    color:#3a2a05;
+    background:linear-gradient(180deg,var(--gold),var(--gold-2));
+    border-radius:13px;padding:11px 18px;
+    box-shadow:0 4px 0 var(--gold-deep), 0 8px 16px rgba(240,163,43,.3);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-gold:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--gold-deep), 0 12px 20px rgba(240,163,43,.4)}
+  .btn-gold:active{transform:translateY(2px);box-shadow:0 2px 0 var(--gold-deep)}
+  .btn-ghost{
+    display:block;width:100%;text-align:center;
+    font-family:'Bebas Neue';font-weight:700;font-size:14px;
+    color:var(--cream);border:1.5px solid rgba(247,234,209,.35);
+    border-radius:13px;padding:10px 18px;margin-top:9px;
+    transition:background .15s ease;
+  }
+  .btn-ghost:hover{background:rgba(247,234,209,.09)}
+
+  .rank-row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:11px;font-size:13.5px;font-weight:700}
+  .rank-row .pos{
+    width:24px;height:24px;flex:none;border-radius:50%;
+    background:rgba(247,234,209,.1);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Bebas Neue';font-weight:800;font-size:12px;
+  }
+  .rank-row .rname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rank-row .rxp{font-family:'Bebas Neue';font-weight:800;color:var(--gold);font-size:13px}
+  .rank-row.me{background:rgba(255,201,77,.14);box-shadow:inset 3px 0 0 var(--gold)}
+  .rank-row.me .pos{background:var(--gold);color:#3a2a05}
+  .rank-note{margin-top:9px;font-size:11px;color:var(--cream-dim);font-weight:600}
+
+  .badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .badge{text-align:center}
+  .badge .bico{
+    width:46px;height:46px;margin:0 auto 6px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,var(--gold),var(--gold-2));color:#4a3205;
+    box-shadow:0 3px 0 var(--gold-deep);
+  }
+  .badge span{display:block;font-size:10.5px;font-weight:800;line-height:1.15}
+  .badge.off .bico{background:rgba(247,234,209,.1);color:rgba(247,234,209,.3);box-shadow:none}
+  .badge.off span{color:rgba(247,234,209,.35)}
+
+  .reset{
+    align-self:center;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+    color:rgba(247,234,209,.4);text-decoration:underline;text-underline-offset:3px;
+  }
+  .reset:hover{color:var(--coral)}
+
+  /* ============ MODAL ============ */
+  .modal-overlay{
+    position:fixed;inset:0;z-index:50;
+    background:rgba(4,20,28,.72);
+    backdrop-filter:blur(5px);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .modal-overlay.open{opacity:1;pointer-events:auto}
+  .modal{
+    width:min(480px,100%);
+    background:linear-gradient(170deg,var(--parchment),var(--parchment-2));
+    color:var(--ink);
+    border-radius:20px;
+    border:3px solid #d3af74;
+    box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.6);
+    padding:26px 26px 24px;
+    position:relative;
+    transform:translateY(16px) scale(.97);
+    transition:transform .25s cubic-bezier(.22,1,.36,1);
+    max-height:88vh;overflow-y:auto;
+  }
+  .modal-overlay.open .modal{transform:none}
+  .modal-close{
+    position:absolute;top:13px;right:13px;width:32px;height:32px;border-radius:50%;
+    background:rgba(46,35,24,.09);color:var(--ink-soft);
+    font-size:19px;font-weight:800;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .modal-close:hover{background:rgba(46,35,24,.17)}
+  .m-unit{
+    display:inline-block;font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+    color:#8a5a2b;background:rgba(138,90,43,.13);
+    padding:4px 11px;border-radius:99px;margin-bottom:10px;
+  }
+  .m-title{font-family:'Bebas Neue';font-weight:800;font-size:25px;line-height:1.1;margin-bottom:6px}
+  .m-desc{font-size:13.5px;font-weight:600;color:var(--ink-soft);line-height:1.5;margin-bottom:16px}
+  .m-best{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(46,35,24,.07);border-radius:11px;padding:9px 13px;
+    font-size:12.5px;font-weight:800;color:var(--ink-soft);margin-bottom:14px;
+  }
+  .m-best .stars{display:flex;gap:2px}
+  .m-best .stars svg{width:16px;height:16px}
+
+  .tier{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1.5px dashed rgba(46,35,24,.14)}
+  .tier:last-of-type{border-bottom:none}
+  .tier .dot{width:13px;height:13px;border-radius:50%;margin-top:3px;flex:none;box-shadow:inset 0 -2px 3px rgba(0,0,0,.25)}
+  .tier strong{font-family:'Bebas Neue';font-size:14px;display:block}
+  .tier p{font-size:12px;font-weight:600;color:var(--ink-soft)}
+  .t1 .dot{background:#2fa66a}.t2 .dot{background:#e0a02e}.t3 .dot{background:#d1495b}
+
+  .m-rewards{display:flex;gap:9px;margin:15px 0 17px}
+  .rew{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+    background:rgba(46,35,24,.06);border:1.5px solid rgba(46,35,24,.12);
+    border-radius:11px;padding:8px 6px;
+    font-family:'Bebas Neue';font-weight:800;font-size:13.5px;
+  }
+  .m-cta .btn-gold{color:#3a2a05}
+  .m-note{margin-top:11px;text-align:center;font-size:11.5px;font-weight:700;color:var(--ink-soft)}
+  .m-locked-box{
+    background:rgba(209,73,91,.1);border:1.5px dashed rgba(209,73,91,.5);
+    border-radius:12px;padding:12px 15px;margin-top:6px;
+    font-size:13px;font-weight:700;color:#8e3244;line-height:1.45;
+  }
+
+  /* simulação */
+  .run-q{display:flex;justify-content:center;gap:10px;margin:22px 0 8px}
+  .qdot{
+    width:40px;height:40px;border-radius:12px;
+    background:rgba(46,35,24,.1);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Bebas Neue';font-weight:800;font-size:15px;color:rgba(46,35,24,.35);
+    transition:all .25s ease;
+  }
+  .qdot.ok{background:var(--green);color:#063d27;transform:scale(1.08);box-shadow:0 3px 0 var(--green-2)}
+  .qdot.miss{background:var(--coral);color:#5c130a;transform:scale(1.08)}
+  .run-label{text-align:center;font-size:12.5px;font-weight:800;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}
+
+  .result-stars{display:flex;justify-content:center;gap:8px;margin:14px 0 6px}
+  .result-stars svg{width:52px;height:52px;opacity:0;transform:scale(.2) rotate(-30deg)}
+  .result-stars svg.pop{animation:star-pop .45s cubic-bezier(.34,1.56,.64,1) forwards}
+  .result-stars svg.off{opacity:.18;transform:none;filter:grayscale(1)}
+  @keyframes star-pop{to{opacity:1;transform:scale(1) rotate(0)}}
+  .result-title{font-family:'Bebas Neue';font-weight:800;font-size:24px;text-align:center}
+  .result-sub{text-align:center;font-size:13px;font-weight:700;color:var(--ink-soft);margin:4px 0 14px}
+  .result-gains{display:flex;gap:9px;margin-bottom:16px}
+  .gain{
+    flex:1;text-align:center;border-radius:13px;padding:11px 6px;
+    font-family:'Bebas Neue';font-weight:800;font-size:17px;
+    background:rgba(46,35,24,.06);border:1.5px solid rgba(46,35,24,.12);
+    opacity:0;transform:translateY(8px);animation:gain-in .4s ease forwards;
+  }
+  .gain small{display:block;font-family:'Barlow';font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-top:2px}
+  @keyframes gain-in{to{opacity:1;transform:none}}
+  .levelup{
+    text-align:center;font-family:'Bebas Neue';font-weight:800;font-size:15px;color:#7a4c05;
+    background:linear-gradient(90deg,rgba(255,201,77,.35),rgba(255,201,77,.6),rgba(255,201,77,.35));
+    border-radius:11px;padding:9px;margin-bottom:14px;
+    animation:gain-in .5s .3s ease both;
+  }
+
+  /* ============ QUIZ ============ */
+  .quiz-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .tier-chip{
+    display:inline-flex;align-items:center;gap:7px;
+    font-family:'Bebas Neue';font-weight:800;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+    padding:4px 12px;border-radius:99px;background:rgba(46,35,24,.08);
+  }
+  .tier-chip .dot{width:10px;height:10px;border-radius:50%;box-shadow:inset 0 -2px 3px rgba(0,0,0,.25)}
+  .tier-chip.t1 .dot{background:#2fa66a}.tier-chip.t2 .dot{background:#e0a02e}.tier-chip.t3 .dot{background:#d1495b}
+  .quiz-count{font-size:11.5px;font-weight:800;color:var(--ink-soft);letter-spacing:.07em;text-transform:uppercase}
+  .run-q.small{gap:8px;margin:4px 0 14px}
+  .run-q.small .qdot{width:30px;height:30px;border-radius:9px;font-size:12px}
+  .run-q.small .qdot.current{border:2px solid #b98a4e;color:var(--ink)}
+  .q-text{font-family:'Bebas Neue';font-weight:700;font-size:18.5px;line-height:1.35;margin-bottom:15px}
+  .opts{display:flex;flex-direction:column;gap:9px;margin-bottom:13px}
+  .opt{
+    display:flex;align-items:center;gap:12px;text-align:left;
+    background:rgba(255,255,255,.55);
+    border:2px solid rgba(46,35,24,.18);
+    border-radius:13px;padding:10px 13px;
+    font-size:14px;font-weight:700;color:var(--ink);line-height:1.35;
+    transition:all .15s ease;
+  }
+  .opt:hover:not(:disabled){border-color:#b98a4e;background:#fff;transform:translateY(-1px)}
+  .opt:disabled{cursor:default}
+  .opt-letter{
+    width:28px;height:28px;flex:none;border-radius:9px;
+    background:rgba(46,35,24,.1);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Bebas Neue';font-weight:800;font-size:13px;
+  }
+  .opt.ok{background:#d9f5e7;border-color:#2fa66a;color:#0c4a2e}
+  .opt.ok .opt-letter{background:#2fa66a;color:#fff}
+  .opt.miss{background:#fbe3e0;border-color:#d1495b;color:#7c2230}
+  .opt.miss .opt-letter{background:#d1495b;color:#fff}
+  .opt.dim{opacity:.5}
+  .exp-box{
+    background:rgba(224,160,46,.14);border:1.5px dashed rgba(138,90,43,.45);
+    border-radius:12px;padding:11px 14px;margin-bottom:13px;
+    font-size:13px;font-weight:600;color:var(--ink-soft);line-height:1.5;
+  }
+  .exp-box strong{color:var(--ink)}
+
+  /* ============ RESPONSIVO ============ */
+  @media (max-width:1020px){
+    body{overflow:auto}
+    .layout{display:block;height:auto}
+    .map-scroll{overflow:auto}
+    .side{border-left:1px solid var(--card-line);border-top:none}
+    .xp-block{width:130px}
+  }
+  @media (max-width:640px){
+    .topbar{height:auto;padding:12px 14px;flex-wrap:wrap}
+    .brand small{display:none}
+    .xp-block{order:3;width:100%}
+  }
+  /* ============ RESKIN GTA (8º/9º ano) ============ */
+  :root{
+    --ocean-1:#161c26;
+    --ocean-2:#090c12;
+    --cream:#edf0f5;
+    --cream-dim:rgba(237,240,245,.55);
+    --locked:#232b38;
+    --locked-b:#3d4a5e;
+    --glass:rgba(13,18,26,.82);
+    --card-line:rgba(237,240,245,.1);
+    --acc:#6ee86e;   /* cor neon da disciplina (JS ajusta por matéria) */
+    --gps:#c084fc;   /* roxo da rota de GPS */
+  }
+  body{
+    background:
+      radial-gradient(1100px 700px at 75% -10%, #232e40 0%, transparent 55%),
+      radial-gradient(900px 700px at 5% 110%, #131a26 0%, transparent 50%),
+      linear-gradient(180deg, var(--ocean-1) 0%, var(--ocean-2) 100%);
+    background-attachment:fixed;
+  }
+  body::before{
+    background-image:
+      repeating-linear-gradient(0deg, rgba(237,240,245,.03) 0 1px, transparent 1px 84px),
+      repeating-linear-gradient(90deg, rgba(237,240,245,.03) 0 1px, transparent 1px 84px);
+  }
+  .topbar{background:rgba(9,12,18,.88)}
+  .brand h1{letter-spacing:.14em}
+  .brand small{color:var(--acc)}
+  .tab.active{color:#0b0e13;background:var(--acc);border-color:transparent;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+  .card h3{color:var(--acc)}
+  .card.mission{border-color:var(--acc);background:linear-gradient(160deg,rgba(237,240,245,.05),rgba(13,18,26,.92))}
+  .sign{
+    background:rgba(8,12,18,.88);border:1.5px solid var(--acc);
+    color:var(--acc);text-transform:uppercase;letter-spacing:.14em;border-radius:4px;
+    box-shadow:0 4px 12px rgba(0,0,0,.5);
+  }
+  .sign::before{display:none}
+  .route-progress{stroke:var(--gps);stroke-dasharray:14 10;stroke-width:7;filter:drop-shadow(0 0 6px rgba(192,132,252,.85))}
+  .node.available .medal{
+    background:var(--acc);border-color:rgba(255,255,255,.85);color:#0b0e13;
+    box-shadow:0 5px 0 rgba(0,0,0,.5),0 8px 18px rgba(0,0,0,.4);
+  }
+  .node.available .medal::before{border-color:var(--acc)}
+  .modal{background:linear-gradient(170deg,#1a212e,#11151e);color:var(--cream);border:2px solid var(--acc);box-shadow:0 24px 60px rgba(0,0,0,.7)}
+  .modal-close{background:rgba(237,240,245,.08);color:var(--cream-dim)}
+  .modal-close:hover{background:rgba(237,240,245,.16)}
+  .m-unit{color:var(--acc);background:rgba(237,240,245,.07)}
+  .m-title{color:var(--cream)}
+  .m-desc{color:var(--cream-dim)}
+  .m-best{background:rgba(237,240,245,.06);color:var(--cream-dim)}
+  .tier{border-bottom-color:rgba(237,240,245,.12)}
+  .tier strong{color:var(--cream)}
+  .tier p{color:var(--cream-dim)}
+  .rew{background:rgba(237,240,245,.05);border-color:rgba(237,240,245,.14);color:var(--cream)}
+  .m-note{color:var(--cream-dim)}
+  .m-locked-box{background:rgba(228,87,46,.1);border-color:rgba(228,87,46,.5);color:#ff9c86}
+  .qdot{background:rgba(237,240,245,.08);color:rgba(237,240,245,.4)}
+  .run-q.small .qdot.current{border-color:var(--acc);color:var(--cream)}
+  .run-label{color:var(--cream-dim)}
+  .q-text{color:var(--cream)}
+  .quiz-count{color:var(--cream-dim)}
+  .tier-chip{background:rgba(237,240,245,.07);color:var(--cream)}
+  .opt{background:rgba(237,240,245,.05);border-color:rgba(237,240,245,.16);color:var(--cream)}
+  .opt:hover:not(:disabled){border-color:var(--acc);background:rgba(237,240,245,.1)}
+  .opt-letter{background:rgba(237,240,245,.1);color:var(--cream)}
+  .opt.ok{background:rgba(62,207,148,.15);border-color:#2fa66a;color:#7ce8b8}
+  .opt.miss{background:rgba(255,107,94,.12);border-color:#d1495b;color:#ff9c8a}
+  .exp-box{background:rgba(192,132,252,.08);border-color:rgba(192,132,252,.4);color:var(--cream-dim)}
+  .exp-box strong{color:var(--cream)}
+  .gain{background:rgba(237,240,245,.05);border-color:rgba(237,240,245,.14);color:var(--gold)}
+  .gain small{color:var(--cream-dim)}
+  .levelup{color:#3a2a05}
+  .result-title{color:var(--cream)}
+  .result-sub{color:var(--cream-dim)}
+  /* cidade única: rótulos sob hover/disponível + legenda de distritos */
+  .node .label{opacity:0;transition:opacity .15s ease}
+  .node:hover .label,.node.available .label{opacity:1}
+  .node .stars{pointer-events:none}
+  .legend-chip{display:inline-flex}
+  .legend-dot{width:10px;height:10px;border-radius:50%;background:var(--acc);flex:none;align-self:center}
+  /* multiplicador estilo GTA */
+  .mult-chip{
+    font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.08em;
+    color:#0b0e13;background:linear-gradient(180deg,#ffe08a,var(--gold));
+    border-radius:5px;padding:1px 8px;margin-left:4px;
+    box-shadow:0 0 8px rgba(255,201,77,.7);
+  }
+  .mult-chip.max{animation:boss-glow 1.2s ease-in-out infinite}
+  /* barra de distrito (HUD do GTA 1) */
+  .district-bar{
+    position:sticky;top:8px;z-index:7;width:fit-content;margin:0 auto 8px;
+    background:linear-gradient(180deg,#3a8f3e,#1f5c25);color:#fff;
+    font-family:'Bebas Neue',sans-serif;letter-spacing:.2em;font-size:16px;
+    padding:5px 26px;border-radius:4px;border:1px solid rgba(255,255,255,.3);
+    box-shadow:0 4px 12px rgba(0,0,0,.55);text-transform:uppercase;
+  }
+  /* personagem do aluno */
+  .student{
+    position:absolute;z-index:5;pointer-events:none;width:40px;height:52px;
+    transform:translate(-50%,-50%) rotate(var(--dir,0deg));
+    transition:transform .18s ease;
+  }
+  .student img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
+  .student.walking img{animation:wig .26s ease-in-out infinite}
+  @keyframes wig{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+  /* seta amarela de objetivo (GTA 1) */
+  .objective-arrow{
+    position:absolute;z-index:6;pointer-events:none;width:0;height:0;
+    border-left:13px solid transparent;border-right:13px solid transparent;
+    border-top:20px solid #ffd400;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));
+    animation:arr-bob .9s ease-in-out infinite;
+  }
+  @keyframes arr-bob{0%,100%{margin-top:0}50%{margin-top:-11px}}
+  .multline{
+    text-align:center;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.06em;
+    color:var(--gold);margin:0 0 12px;
+  }
+  /* ===== mapa em tela cheia + gaveta + zoom ===== */
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .map-canvas{max-width:1180px;transform-origin:50% 0}
+  .map-art{image-rendering:pixelated}
+  .map-scroll{overflow-x:auto}
+  #zoomWrap{position:relative;width:100%}
+  .side{
+    position:fixed;top:66px;right:0;bottom:0;width:344px;z-index:30;
+    transform:translateX(105%);transition:transform .3s ease;
+    border-left:1px solid var(--card-line);
+    background:rgba(6,10,15,.97);
+  }
+  .side.open{transform:translateX(0)}
+  .panel-toggle{
+    position:fixed;right:0;top:46%;z-index:29;
+    background:var(--glass);border:1px solid var(--card-line);border-right:none;
+    border-radius:10px 0 0 10px;padding:14px 8px;
+    writing-mode:vertical-rl;letter-spacing:.15em;font-family:'Bebas Neue',sans-serif;font-size:13px;
+    color:var(--acc);text-transform:uppercase;
+  }
+  .panel-toggle:hover{background:rgba(237,240,245,.12)}
+  .zoom-ctl{position:fixed;left:14px;bottom:14px;z-index:29;display:flex;flex-direction:column;gap:8px;align-items:center}
+  .zoom-ctl button{
+    width:42px;height:42px;border-radius:10px;background:var(--glass);
+    border:1px solid var(--card-line);color:var(--cream);
+    font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;
+  }
+  .zoom-ctl button:hover{border-color:var(--acc);color:var(--acc)}
+  .zoom-ctl .zlabel{font-size:13px;font-weight:800;color:var(--cream-dim)}
+  .drive-hint{
+    position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:29;
+    background:var(--glass);border:1px solid var(--card-line);border-radius:99px;
+    padding:6px 16px;font-size:12px;font-weight:700;color:var(--cream-dim);
+    pointer-events:none;
+  }
+  /* ===== blips de missão sobre os prédios (sem "bolas") ===== */
+  .node:not(.boss) .medal{
+    width:38px;height:38px;border-width:2.5px;border-radius:11px;
+  }
+  .node:not(.boss) .medal svg{width:20px;height:20px;display:block}
+  .node:not(.boss).available .medal::before{inset:-7px}
+  .node.boss .medal{width:58px;height:64px;font-size:24px}
+  .node.boss .medal svg{width:24px;height:24px}
+</style>
+</head>
+<body>
+
+  <!-- ============ TOPO ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" stroke="#ffc94d" stroke-width="1.6"/>
+        <circle cx="12" cy="12" r="6.5" stroke="rgba(247,234,209,.35)" stroke-width="1" stroke-dasharray="2 3"/>
+        <path d="M12 6.5 14 12l-2 5.5L10 12z" fill="#ffc94d"/>
+        <circle cx="12" cy="12" r="1.3" fill="#f7ead1"/>
+      </svg>
+      <div>
+        <h1>Grande Trilha do Aprendizado</h1>
+        <small>GTA · 8º e 9º ano · protótipo</small>
+      </div>
+    </div>
+
+    <div class="player">
+      <div class="stat-chip streak" title="Ofensiva: dias seguidos estudando. O escudo protege 1 falta por semana.">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 22a7 7 0 0 0 7-7c0-2.2-1-4.1-2.4-5.7C15.2 7.7 13.2 5.6 12 2c-1.2 3.6-3.2 5.7-4.6 7.3C6 10.9 5 12.8 5 15a7 7 0 0 0 7 7z"/>
+        </svg>
+        <span id="streakDays">6</span><small>dias 🛡</small>
+      </div>
+      <div class="stat-chip coins" title="Moedas: trocadas por itens cosméticos do avatar">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <circle cx="12" cy="12" r="5" fill="none" stroke="rgba(58,42,5,.55)" stroke-width="1.6"/>
+        </svg>
+        <span id="coinCount">0</span>
+      </div>
+      <div class="xp-block">
+        <div class="xp-top">
+          <strong>Nv. <span id="lvlNum">1</span> · <span id="lvlTitle">Novato</span></strong>
+          <span id="xpText">0 / 80 XP</span>
+          <span class="mult-chip" id="multChip" hidden>×2</span>
+        </div>
+        <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+      </div>
+      <div class="avatar-wrap" title="Seu avatar">
+        <svg viewBox="0 0 52 52" aria-hidden="true">
+          <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(247,234,209,.15)" stroke-width="3"/>
+          <circle id="avatarRing" cx="26" cy="26" r="24" fill="none" stroke="#ffc94d" stroke-width="3"
+                  stroke-linecap="round" stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+        </svg>
+        <div class="avatar"><img src="assets/avatar.png" alt="Avatar do jogador"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ CONTEÚDO ============ -->
+  <div class="layout">
+    <section class="map-col">
+      <nav class="tabs" id="tabs" aria-label="Disciplinas"></nav>
+      <div class="map-scroll" id="mapScroll">
+        <div class="map-head">
+          <h2 id="worldName"></h2>
+          <p id="worldMeta"></p>
+        </div>
+        <div class="district-bar" id="districtBar">CIDADE DO SABER</div>
+        <div id="zoomWrap">
+          <div class="map-canvas" id="mapCanvas">
+            <svg id="mapSvg" aria-hidden="true"></svg>
+            <div id="decoLayer"></div>
+            <div id="nodesLayer"></div>
+            <div class="student" id="student" hidden><img src="assets/aluno.png" alt="Seu personagem"></div>
+          </div>
+        </div>
+      </div>
+      <button class="panel-toggle" id="panelToggle">◀ Painel</button>
+      <div class="drive-hint">⌨️ setas / WASD para dirigir · Shift corre</div>
+      <div class="zoom-ctl">
+        <button id="zoomIn" aria-label="Mais zoom">+</button>
+        <span class="zlabel" id="zoomLabel">1×</span>
+        <button id="zoomOut" aria-label="Menos zoom">−</button>
+      </div>
+    </section>
+
+    <!-- ============ PAINEL LATERAL ============ -->
+    <aside class="side">
+      <div class="card">
+        <h3>🎖️ Seu respeito</h3>
+        <div class="jrow"><span>Missões concluídas</span><strong id="stPhases">0 / 12</strong></div>
+        <div class="jrow"><span>Estrelas</span><strong id="stStars">0 / 36</strong></div>
+        <div class="jrow"><span>Elites vencidas</span><strong id="stBosses">0 / 3</strong></div>
+        <div class="jrow"><span>Cidade explorada</span><strong id="stWorldPct">0%</strong></div>
+        <div class="world-bar"><div class="world-fill" id="worldFill"></div></div>
+      </div>
+
+      <div class="card mission">
+        <h3>🎯 Próxima missão</h3>
+        <div class="mission-name" id="missionName">—</div>
+        <div class="mission-unit" id="missionUnit">—</div>
+        <button class="btn-gold" id="missionBtn">Ir para a fase</button>
+      </div>
+
+      <div class="card">
+        <h3>📈 Respeito da semana</h3>
+        <div id="rankList"></div>
+        <p class="rank-note">Turma 9A · ranking por XP ganho na semana, não por total — quem se esforça aparece.</p>
+      </div>
+
+      <div class="card">
+        <h3>🏅 Conquistas</h3>
+        <div class="badge-grid" id="badgeGrid"></div>
+      </div>
+
+      <button class="reset" id="resetBtn">reiniciar progresso do protótipo</button>
+    </aside>
+  </div>
+
+  <!-- ============ MODAL ============ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="modal-close" id="modalClose" aria-label="Fechar">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+<script src="questoes/mat.js"></script>
+<script src="questoes/por.js"></script>
+<script src="questoes/cie.js"></script>
+<script src="questoes/his.js"></script>
+<script src="assets/mascara.js"></script>
+<script>
+'use strict';
+
+/* ================================================================
+   TRILHA DO SABER — protótipo navegável
+   Simula: mapa de fases por disciplina, estrelas, XP, níveis,
+   desafios-chefão com exigência de estrelas, ranking e medalhas.
+   ================================================================ */
+
+const $ = s => document.querySelector(s);
+
+/* ---------- ícones SVG ---------- */
+const ICONS = {
+  star: (c='') => `<svg class="${c}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2l2.9 6.2 6.8.8-5 4.6 1.3 6.7L12 17.2 6 20.5l1.3-6.7-5-4.6 6.8-.8z"/></svg>`,
+  check: () => `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg>`,
+  lock: () => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 11V7.5a4 4 0 0 1 8 0V11" stroke="currentColor" stroke-width="2.4"/><rect x="5" y="11" width="14" height="9.5" rx="2.5" fill="currentColor"/></svg>`,
+  crown: () => `<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8.5l4.2 3.6L12 5.5l4.8 6.6L21 8.5V18H3z"/><rect x="3" y="19" width="18" height="2.2" rx="1.1"/></svg>`,
+  flag: () => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4h11.5l-3 4 3 4H6" fill="currentColor" stroke="none"/></svg>`,
+  bolt: () => `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5z"/></svg>`,
+  globe: () => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3.5 9h17M3.5 15h17"/></svg>`,
+  flame: () => `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2.2-1-4.1-2.4-5.7C15.2 7.7 13.2 5.6 12 2c-1.2 3.6-3.2 5.7-4.6 7.3C6 10.9 5 12.8 5 15a7 7 0 0 0 7 7z"/></svg>`,
+};
+
+/* ícones temáticos das disciplinas (blips nos prédios) */
+const SICONS = {
+  cie: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.5 3h5v2h-1.5v4.6l4.6 7.9A3 3 0 0 1 15 22H9a3 3 0 0 1-2.6-4.5l4.6-7.9V5H9.5z"/></svg>`,
+  his: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5 21 8H3z"/><path d="M5 10h2.5v7H5zM10.75 10h2.5v7h-2.5zM16.5 10H19v7h-2.5z"/><path d="M3 18.5h18V21H3z"/></svg>`,
+  mat: `<svg viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="17.5" text-anchor="middle" font-size="15" font-family="Georgia,serif" font-weight="bold" fill="currentColor">π</text></svg>`,
+  por: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5.5C10 3.9 7 3.6 4.5 4.6v14.3c2.5-1 5.5-.7 7.5.9 2-1.6 5-1.9 7.5-.9V4.6C17 3.6 14 3.9 12 5.5z"/><path d="M12 5.5v14" stroke="rgba(0,0,0,.35)" stroke-width="1" fill="none"/></svg>`,
+};
+
+/* ---------- conteúdo do protótipo (8º/9º ano) ---------- */
+/* ordem de baixo para cima no mapa: porto industrial → centro histórico → downtown → bairro cultural */
+const SUBJECTS = [
+  { id:'cie', name:'Ciências', accent:'#4dd7ff',
+    units:[
+    { name:'Distrito da Energia',   boss:'Doutor Voltagem',   phases:['Formas e transformações de energia','Calor e temperatura','Eletricidade e circuitos'] },
+    { name:'Centro da Química',     boss:'O Alquimista',      phases:['Átomos e tabela periódica','Ligações químicas e fórmulas','Reações químicas'] },
+    { name:'Zona da Biologia',      boss:'Guardião do DNA',   phases:['Células e organelas','Genética e hereditariedade','Evolução e seleção natural'] },
+  ]},
+  { id:'his', name:'História', accent:'#ff7a4d',
+    units:[
+    { name:'Distrito da República Velha', boss:'Fantasma do Sertão', phases:['Proclamação da República','Coronelismo e política do café','Canudos e Contestado'] },
+    { name:'Centro da Era Vargas',        boss:'O Presidente',       phases:['Revolução de 1930','Estado Novo','Industrialização e trabalho'] },
+    { name:'Zona da Ditadura',            boss:'O General',          phases:['Golpe de 1964','AI-5 e a repressão','Abertura e Constituição de 1988'] },
+  ]},
+  { id:'mat', name:'Matemática', accent:'#6ee86e',
+    units:[
+    { name:'Distrito da Álgebra',   boss:'Rei da Álgebra',    phases:['Produtos notáveis e fatoração','Equações do 2º grau','Sistemas de equações'] },
+    { name:'Centro da Geometria',   boss:'Mestre das Formas', phases:['Teorema de Pitágoras','Semelhança de triângulos','Áreas de figuras planas'] },
+    { name:'Zona das Funções',      boss:'O Analista',        phases:['Função afim','Função quadrática','Leitura de gráficos e tabelas'] },
+  ]},
+  { id:'por', name:'Português', accent:'#ffb84d',
+    units:[
+    { name:'Distrito da Notícia',   boss:'Diretor de Jornal', phases:['Gênero notícia e reportagem','Fato versus opinião','Coesão referencial'] },
+    { name:'Centro da Gramática',   boss:'Inspetor da Norma', phases:['Termos da oração','Orações subordinadas','Pontuação'] },
+    { name:'Zona da Literatura',    boss:'Curador do Museu',  phases:['Narrativa e tipos de narrador','Conotação e figuras de linguagem','Modernismo e a Semana de 22'] },
+  ]},
+];
+
+/* ---------- a cidade única: arte + coordenadas dos 4 distritos ---------- */
+const CITY = {
+  src:'assets/cidade.png', ar:1.792, trophy:[0.500,0.145],
+  districts:{
+    cie:{ sign:[0.500,0.987],
+      nodes:[[0.140,0.949],[0.282,0.938],[0.855,0.934],[0.539,0.914],[0.611,0.894],[0.096,0.868],[0.417,0.834],[0.283,0.824],[0.130,0.759],[0.562,0.751],[0.858,0.750],[0.356,0.749]] },
+    his:{ sign:[0.620,0.716],
+      nodes:[[0.423,0.683],[0.140,0.676],[0.852,0.674],[0.260,0.670],[0.130,0.634],[0.826,0.632],[0.568,0.630],[0.360,0.609],[0.111,0.587],[0.900,0.581],[0.848,0.558],[0.646,0.550]] },
+    mat:{ sign:[0.350,0.498],
+      nodes:[[0.637,0.434],[0.151,0.430],[0.826,0.423],[0.421,0.421],[0.278,0.368],[0.616,0.357],[0.721,0.354],[0.825,0.349],[0.451,0.305],[0.153,0.304],[0.859,0.298],[0.399,0.296]] },
+    por:{ sign:[0.630,0.249],
+      nodes:[[0.148,0.205],[0.385,0.191],[0.845,0.186],[0.665,0.185],[0.875,0.126],[0.154,0.123],[0.324,0.122],[0.670,0.120],[0.154,0.064],[0.324,0.063],[0.845,0.061],[0.500,0.151]] },
+  },
+};
+
+/* trilha de dificuldade dentro de cada fase */
+const TIERS = [
+  { cls:'t1', name:'Fixação',   desc:'exercícios guiados para fixar o básico' },
+  { cls:'t2', name:'Aplicação', desc:'situações-problema do dia a dia' },
+  { cls:'t3', name:'Desafio',   desc:'questões difíceis, que valem mais XP' },
+];
+
+const BOSS_STARS_REQUIRED = 7;   // estrelas na ilha para liberar o chefão (de 9 possíveis)
+const LESSON_REW = { xp:25, coins:6 };   // × estrelas conquistadas
+const BOSS_REW   = { xp:60, coins:15 };
+const LEVEL_TITLES = ['Novato','Iniciado','Piloto','Corredor','Veterano','Lenda da Cidade'];
+
+/* monta a lista plana de fases de uma disciplina */
+function buildPhases(subject){
+  const list = [];
+  subject.units.forEach((u, ui) => {
+    u.phases.forEach(title => list.push({
+      id:`${subject.id}-${list.length}`, idx:list.length, type:'lesson',
+      title, unit:u.name, unitIdx:ui, rew:LESSON_REW,
+    }));
+    list.push({
+      id:`${subject.id}-${list.length}`, idx:list.length, type:'boss',
+      title:`Missão de Elite: ${u.boss}`, unit:u.name, unitIdx:ui, rew:BOSS_REW,
+    });
+  });
+  return list;
+}
+
+/* ---------- estado (persiste no navegador) ---------- */
+const SAVE_KEY = 'gtaTrilha89V1';
+const freshState = () => ({ xp:0, coins:0, weeklyXP:60, streak:6, mult:1, completed:{} });
+let state = load();
+
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(SAVE_KEY)); return s && typeof s==='object' ? Object.assign(freshState(), s) : freshState(); }
+  catch(e){ return freshState(); }
+}
+function save(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+
+function starsOf(phaseId){ return (state.completed[phaseId] || 0); }
+
+function levelInfo(totalXP){
+  let lvl = 1, rest = totalXP, need = xpNeed(lvl);
+  while(rest >= need){ rest -= need; lvl++; need = xpNeed(lvl); }
+  return { level:lvl, into:rest, need };
+}
+function xpNeed(lvl){ return Math.round(80 * Math.pow(lvl, 1.3)); }
+function levelTitle(lvl){ return LEVEL_TITLES[Math.min(lvl-1, LEVEL_TITLES.length-1)]; }
+
+/* estatísticas da disciplina atual (estrelas contam só nas fases-lição) */
+function subjectStats(subjectId){
+  const subject = SUBJECTS.find(s => s.id === subjectId);
+  const phases = buildPhases(subject);
+  let stars = 0, done = 0, bosses = 0;
+  phases.forEach(p => {
+    const st = starsOf(p.id);
+    if(st > 0){
+      done++;
+      if(p.type === 'lesson') stars += st;
+      else bosses++;
+    }
+  });
+  const maxStars = phases.filter(p => p.type === 'lesson').length * 3;
+  return { phases, stars, done, bosses, maxStars };
+}
+
+/* regra de desbloqueio */
+function unlockInfo(phase, phases){
+  if(phase.idx === 0) return { ok:true };
+  const prev = phases[phase.idx - 1];
+  if(starsOf(prev.id) === 0) return { ok:false, reason:'prev', prev };
+  if(phase.type === 'boss'){
+    const unitStars = phases
+      .filter(p => p.unitIdx === phase.unitIdx && p.type === 'lesson')
+      .reduce((acc,p) => acc + starsOf(p.id), 0);
+    if(unitStars < BOSS_STARS_REQUIRED)
+      return { ok:false, reason:'stars', have:unitStars, need:BOSS_STARS_REQUIRED };
+  }
+  return { ok:true };
+}
+
+/* ================================================================
+   RENDER — abas, topo, mapa, sidebar
+   ================================================================ */
+
+function renderLegend(){
+  $('#tabs').innerHTML = SUBJECTS.map(s => {
+    const st = subjectStats(s.id);
+    return `<button class="tab legend-chip" data-sub="${s.id}" style="--acc:${s.accent}">
+      <span class="legend-dot"></span>${s.name} <span class="mini-stars">${st.done}/12</span>
+    </button>`;
+  }).join('');
+  document.querySelectorAll('.legend-chip').forEach(b =>
+    b.addEventListener('click', () => scrollToSubject(b.dataset.sub)));
+}
+
+function renderHeader(){
+  const li = levelInfo(state.xp);
+  $('#lvlNum').textContent = li.level;
+  $('#lvlTitle').textContent = levelTitle(li.level);
+  $('#xpText').textContent = `${li.into} / ${li.need} XP`;
+  $('#xpFill').style.width = Math.round(li.into / li.need * 100) + '%';
+  $('#avatarRing').style.strokeDashoffset = (150.8 * (1 - li.into / li.need)).toFixed(1);
+  $('#coinCount').textContent = state.coins;
+  $('#streakDays').textContent = state.streak;
+  const mc = $('#multChip');
+  if((state.mult || 1) > 1){
+    mc.hidden = false;
+    mc.textContent = '×' + state.mult;
+    mc.classList.toggle('max', state.mult >= 3);
+  } else mc.hidden = true;
+}
+
+/* ---------- o mapa ---------- */
+function computePositions(n, W){
+  const cx = W / 2, amp = Math.min(230, W * 0.3), y0 = 220, dy = 150, gap = 130;
+  const pts = [];
+  for(let i = 0; i < n; i++){
+    const unitIdx = Math.floor(i / 4);
+    pts.push({
+      x: Math.round(cx + Math.sin(i * 0.92) * amp),
+      y: y0 + i * dy + unitIdx * gap,
+    });
+  }
+  return pts;
+}
+
+function smoothPath(pts){
+  if(pts.length < 2) return '';
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for(let i = 0; i < pts.length - 1; i++){
+    const p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
+    const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+}
+
+function islandSvg(unitIdx, pts, W){
+  const slice = pts.slice(unitIdx * 4, unitIdx * 4 + 4);
+  const cxi = slice.reduce((a,p) => a + p.x, 0) / slice.length;
+  const firstY = slice[0].y, lastY = slice[slice.length - 1].y;
+  const cy = (firstY + lastY) / 2;
+  const rx = 195, ry = (lastY - firstY) / 2 + 125;
+  const trees = [[-95,-60],[-40,-110],[55,-95],[100,-30],[-115,15],[75,45],[10,-45]]
+    .map(([ox,oy],k) => `<circle class="tree" cx="${cxi+ox}" cy="${cy-28+oy*0.7}" r="${7+(k%3)*2.5}"/>`).join('');
+  return `
+    <ellipse class="contour" cx="${cxi}" cy="${cy}" rx="${rx*1.22}" ry="${ry*1.16}"/>
+    <ellipse class="contour" cx="${cxi}" cy="${cy}" rx="${rx*1.42}" ry="${ry*1.32}"/>
+    <ellipse class="island-sand" cx="${cxi}" cy="${cy}" rx="${rx}" ry="${ry}"/>
+    <ellipse class="island-grass" cx="${cxi}" cy="${cy-26}" rx="${rx*0.74}" ry="${ry*0.68}"/>
+    ${trees}`;
+}
+
+/* ---------- geometria da cidade única ---------- */
+function cityGeom(W){
+  const H = Math.round(W * CITY.ar);
+  const per = {};
+  SUBJECTS.forEach(s => {
+    per[s.id] = CITY.districts[s.id].nodes.map(([rx,ry]) => ({ x: Math.round(rx * W), y: Math.round(ry * H) }));
+  });
+  return { H, per };
+}
+
+/* próxima missão disponível na cidade (distritos na ordem de baixo para cima) */
+function nextMission(){
+  for(const s of SUBJECTS){
+    const phases = buildPhases(s);
+    const m = phases.find(p => starsOf(p.id) === 0 && unlockInfo(p, phases).ok)
+           || phases.find(p => starsOf(p.id) === 0 && unlockInfo(p, phases).reason === 'stars');
+    if(m) return { subject:s, phase:m };
+  }
+  return null;
+}
+
+function renderMap(){
+  const canvas = $('#mapCanvas');
+  const W = Math.max(340, canvas.clientWidth || 900);
+  const { H, per } = cityGeom(W);
+
+  canvas.style.height = H + 'px';
+  canvas.classList.add('with-art');
+
+  let img = canvas.querySelector('.map-art');
+  if(!img){
+    img = document.createElement('img');
+    img.className = 'map-art';
+    img.alt = 'Mapa da cidade';
+    canvas.insertBefore(img, canvas.firstChild);
+  }
+  img.src = CITY.src;
+  img.style.display = '';
+
+  $('#worldName').innerHTML = 'Cidade do <em>Saber</em>';
+  $('#worldMeta').textContent = '4 distritos · 48 missões · vença as Missões de Elite para liberar cada área';
+
+  /* GPS estilo GTA: segmento até a missão atual de cada distrito */
+  let gps = '';
+  SUBJECTS.forEach(s => {
+    const phases = buildPhases(s);
+    const pts = per[s.id];
+    const lastDone = phases.reduce((acc,p) => starsOf(p.id) > 0 ? p.idx : acc, -1);
+    const mission = phases.find(p => starsOf(p.id) === 0 && unlockInfo(p, phases).ok);
+    if(lastDone >= 0 && mission){
+      gps += `<line class="route-progress" x1="${pts[lastDone].x}" y1="${pts[lastDone].y}" x2="${pts[mission.idx].x}" y2="${pts[mission.idx].y}"/>`;
+    }
+  });
+  $('#mapSvg').setAttribute('viewBox', `0 0 ${W} ${H}`);
+  $('#mapSvg').innerHTML = gps;
+
+  /* placas dos distritos */
+  const signs = SUBJECTS.map(s => {
+    const [rx,ry] = CITY.districts[s.id].sign;
+    return `<div class="deco sign" style="left:${Math.round(rx*W)}px;top:${Math.round(ry*H)}px;border-color:${s.accent};color:${s.accent}">${s.name}</div>`;
+  }).join('');
+
+  const compassHtml = `
+    <div class="deco compass" style="left:${W-120}px;top:40px">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="rgba(237,240,245,.5)" stroke-width="1"/>
+        <path d="M12 3v2M12 19v2M3 12h2M19 12h2" stroke="rgba(237,240,245,.5)" stroke-width="1"/>
+        <path d="M12 5.5 14.5 12 12 18.5 9.5 12z" fill="rgba(192,132,252,.9)"/>
+      </svg>
+    </div>`;
+
+  $('#decoLayer').innerHTML = signs + compassHtml;
+
+  /* marcadores de missão de TODOS os distritos */
+  const nodesHtml = SUBJECTS.map(s => {
+    const phases = buildPhases(s);
+    const pts = per[s.id];
+    return phases.map(p => {
+      const st = starsOf(p.id);
+      const info = unlockInfo(p, phases);
+      const pos = pts[p.idx];
+      const isBoss = p.type === 'boss';
+      const cls = st > 0 ? 'done' : (info.ok ? 'available' : 'locked');
+      const inner = st > 0 ? ICONS.check()
+        : isBoss ? (!info.ok ? ICONS.lock() : ICONS.crown())
+        : `<span class="sicon">${SICONS[s.id]}</span>`;
+      const starsHtml = !isBoss ? `<span class="stars">${[1,2,3].map(k =>
+        `<span style="color:#ffc94d" class="${k<=st?'':'off'}">${ICONS.star(k<=st?'':'off')}</span>`).join('')}</span>` : '';
+      const gate = (isBoss && !info.ok && info.reason === 'stars')
+        ? `<span class="gate">★ ${info.have}/${info.need} no distrito</span>` : '';
+      return `<button class="node ${cls} ${isBoss?'boss':''}" style="left:${pos.x}px;top:${pos.y}px;--acc:${s.accent}"
+          data-phase="${p.id}" data-x="${pos.x}" data-y="${pos.y}" aria-label="${p.title}">
+        <span class="medal">${inner}</span>
+        ${starsHtml}
+        <span class="label">${p.title}</span>
+        ${gate}
+      </button>`;
+    }).join('');
+  }).join('');
+
+  $('#nodesLayer').innerHTML = nodesHtml;
+
+  /* seta amarela de objetivo + personagem do aluno */
+  const nm = nextMission();
+  const stu = $('#student');
+  stu.hidden = false;
+  if(nm){
+    const pos = per[nm.subject.id][nm.phase.idx];
+    const arrow = document.createElement('div');
+    arrow.className = 'objective-arrow';
+    arrow.style.left = (pos.x - 13) + 'px';
+    arrow.style.top = (pos.y - (nm.phase.type === 'boss' ? 80 : 60)) + 'px';
+    $('#nodesLayer').appendChild(arrow);
+    $('#districtBar').textContent = `${nm.phase.unit} · ${nm.subject.name}`;
+    if(studentPos.x == null){
+      const sp = nearestIntersection(pos.x, pos.y + 40);
+      placeStudent(sp[0], sp[1]);
+    } else {
+      placeStudent(studentPos.x, studentPos.y);
+    }
+  } else {
+    $('#districtBar').textContent = 'CIDADE DOMINADA 🏆';
+    const tx = CITY.trophy[0] * W, ty = CITY.trophy[1] * H + 64;
+    if(studentPos.x == null){
+      const sp = snapWalkable(tx, ty);
+      placeStudent(sp[0], sp[1]);
+    } else {
+      placeStudent(studentPos.x, studentPos.y);
+    }
+  }
+
+  document.querySelectorAll('.node').forEach(b =>
+    b.addEventListener('click', () => openPhase(b.dataset.phase)));
+
+  applyZoom();
+}
+
+/* ---------- aluno andando pelas ruas ---------- */
+const AV = { v:[0.214,0.500,0.773], h:[0.152,0.239,0.334,0.463,0.612,0.734,0.876] };
+const studentPos = { x:null, y:null };
+let walkRaf = null;
+
+function placeStudent(x, y){
+  studentPos.x = x; studentPos.y = y;
+  const stu = $('#student');
+  stu.style.left = x + 'px';
+  stu.style.top = y + 'px';
+}
+
+function setDir(dx, dy){
+  let deg = 0;
+  if(Math.abs(dx) > Math.abs(dy)) deg = dx > 0 ? -90 : 90;
+  else deg = dy < 0 ? 180 : 0;
+  $('#student').style.setProperty('--dir', deg + 'deg');
+}
+
+/* acha o cruzamento de avenida mais próximo (rua garantida para nascer/parar) */
+function nearestIntersection(x, y){
+  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
+  const xv = AV.v.map(rx => rx * W).reduce((a,b) => Math.abs(b - x) < Math.abs(a - x) ? b : a);
+  const yh = AV.h.map(ry => ry * H).reduce((a,b) => Math.abs(b - y) < Math.abs(a - y) ? b : a);
+  return [xv, yh];
+}
+
+/* rota Manhattan: sobe/desce até uma avenida vertical, cruza até a horizontal do alvo e desce nele */
+function streetRoute(cur, tgt){
+  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
+  const xv = AV.v.map(rx => rx * W).reduce((a,b) => Math.abs(b - cur.x) < Math.abs(a - cur.x) ? b : a);
+  const yh = AV.h.map(ry => ry * H).reduce((a,b) => Math.abs(b - tgt.y) < Math.abs(a - tgt.y) ? b : a);
+  const raw = [[xv, cur.y],[xv, yh],[tgt.x, yh],[tgt.x, tgt.y]];
+  const out = [];
+  let last = { x:cur.x, y:cur.y };
+  for(const [px,py] of raw){
+    if(Math.hypot(px - last.x, py - last.y) > 12){ out.push([px,py]); last = { x:px, y:py }; }
+  }
+  return out;
+}
+
+function walkTo(tx, ty){
+  let snapped = snapWalkable(tx, ty);
+  if(!feetWalkable(snapped[0], snapped[1])) snapped = nearestIntersection(tx, ty);
+  tx = snapped[0]; ty = snapped[1];
+  if(studentPos.x == null){ placeStudent(tx, ty); return; }
+  if(Math.hypot(tx - studentPos.x, ty - studentPos.y) < 6) return;
+  const pts = streetRoute({ x:studentPos.x, y:studentPos.y }, { x:tx, y:ty });
+  if(walkRaf) cancelAnimationFrame(walkRaf);
+  const stu = $('#student');
+  stu.classList.add('walking');
+  let seg = 0, last = performance.now();
+  const SPEED = 320; // px/s
+  function step(now){
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if(seg >= pts.length){ stu.classList.remove('walking'); setDir(0, 1); return; }
+    const [nx, ny] = pts[seg];
+    const dx = nx - studentPos.x, dy = ny - studentPos.y;
+    const dist = Math.hypot(dx, dy);
+    if(dist < 4){ placeStudent(nx, ny); seg++; cameraFollow(); walkRaf = requestAnimationFrame(step); return; }
+    setDir(dx, dy);
+    const move = Math.min(dist, SPEED * dt);
+    placeStudent(studentPos.x + dx / dist * move, studentPos.y + dy / dist * move);
+    cameraFollow();
+    walkRaf = requestAnimationFrame(step);
+  }
+  walkRaf = requestAnimationFrame(step);
+}
+
+/* clique livre no mapa: o aluno vai andando até lá */
+$('#mapCanvas').addEventListener('click', e => {
+  if(e.target.closest('.node')) return;
+  const r = $('#mapCanvas').getBoundingClientRect();
+  const z = ZOOMS[zoomIdx];
+  walkTo((e.clientX - r.left) / z, (e.clientY - r.top) / z);
+});
+
+/* ---------- dirigindo o aluno (setas / WASD) ---------- */
+const KEYS = {};
+let driveRaf = null;
+
+function maskWalkable(x, y){
+  if(!window.MASCARA) return true;
+  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
+  const gx = Math.floor(x / W * MASCARA.w), gy = Math.floor(y / H * MASCARA.h);
+  if(gx < 0 || gy < 0 || gx >= MASCARA.w || gy >= MASCARA.h) return false;
+  return MASCARA.rows[gy][gx] === '1';
+}
+
+function feetWalkable(x, y){
+  return maskWalkable(x - 9, y + 14) || maskWalkable(x, y + 14) || maskWalkable(x + 9, y + 14);
+}
+
+/* acha o ponto andável mais próximo (para parar na calçada em frente ao prédio) */
+function snapWalkable(x, y){
+  if(!window.MASCARA || feetWalkable(x, y)) return [x, y];
+  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
+  const cw = W / MASCARA.w, ch = H / MASCARA.h;
+  const gx0 = Math.round(x / cw), gy0 = Math.round(y / ch);
+  for(let r = 1; r < 45; r++){
+    for(let dy = -r; dy <= r; dy++) for(let dx = -r; dx <= r; dx++){
+      if(Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      const nx = (gx0 + dx) * cw, ny = (gy0 + dy) * ch;
+      if(feetWalkable(nx, ny)) return [nx, ny];
+    }
+  }
+  return [x, y];
+}
+
+/* câmera: mantém o aluno dentro da faixa central (35%–65% da tela);
+   quando ele se aproxima da borda, a tela rola junto */
+function cameraFollow(){
+  if(studentPos.x == null) return;
+  const sc = $('#mapScroll'), z = ZOOMS[zoomIdx];
+  sc.style.scrollBehavior = 'auto';   // smooth atrapalha o seguimento por frames
+  const viewH = sc.clientHeight, viewW = sc.clientWidth;
+  const sy = studentPos.y * z, sx = studentPos.x * z;
+  const top = sc.scrollTop + viewH * 0.35, bottom = sc.scrollTop + viewH * 0.65;
+  if(sy < top) sc.scrollTop -= (top - sy) * 0.25;
+  else if(sy > bottom) sc.scrollTop += (sy - bottom) * 0.25;
+  const left = sc.scrollLeft + viewW * 0.35, right = sc.scrollLeft + viewW * 0.65;
+  if(sx < left) sc.scrollLeft -= (left - sx) * 0.25;
+  else if(sx > right) sc.scrollLeft += (sx - right) * 0.25;
+}
+
+function driveStep(now){
+  const dt = Math.min(0.05, (now - (driveStep.last || now)) / 1000);
+  driveStep.last = now;
+  const up = KEYS.arrowup || KEYS.w, down = KEYS.arrowdown || KEYS.s;
+  const left = KEYS.arrowleft || KEYS.a, right = KEYS.arrowright || KEYS.d;
+  let dx = (right ? 1 : 0) - (left ? 1 : 0), dy = (down ? 1 : 0) - (up ? 1 : 0);
+  if(!dx && !dy){
+    $('#student').classList.remove('walking');
+    driveRaf = null;
+    return;
+  }
+  const mag = Math.hypot(dx, dy); dx /= mag; dy /= mag;
+  setDir(dx, dy);
+  $('#student').classList.add('walking');
+  const speed = (KEYS.shift ? 340 : 210) * dt;
+  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
+  const nx = Math.max(16, Math.min(W - 16, studentPos.x + dx * speed));
+  const ny = Math.max(16, Math.min(H - 16, studentPos.y + dy * speed));
+  if(feetWalkable(nx, ny)) placeStudent(nx, ny);
+  else if(feetWalkable(nx, studentPos.y)) placeStudent(nx, studentPos.y);
+  else if(feetWalkable(studentPos.x, ny)) placeStudent(studentPos.x, ny);
+  cameraFollow();
+  driveRaf = requestAnimationFrame(driveStep);
+}
+
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(k)){
+    e.preventDefault();
+    if(walkRaf){ cancelAnimationFrame(walkRaf); walkRaf = null; }
+    KEYS[k] = true;
+    if(!feetWalkable(studentPos.x, studentPos.y)){
+      const sp = snapWalkable(studentPos.x, studentPos.y);
+      placeStudent(sp[0], sp[1]);   /* anti-travamento: sempre começa numa rua */
+    }
+    if(!driveRaf){ driveStep.last = null; driveRaf = requestAnimationFrame(driveStep); }
+  }
+  if(k === 'shift') KEYS.shift = true;
+});
+window.addEventListener('keyup', e => {
+  delete KEYS[e.key.toLowerCase()];
+  if(e.key.toLowerCase() === 'shift') KEYS.shift = false;
+});
+
+/* ---------- zoom ---------- */
+const ZOOMS = [1, 1.3, 1.7, 2.2];
+let zoomIdx = 0;
+
+function applyZoom(){
+  const z = ZOOMS[zoomIdx];
+  const canvas = $('#mapCanvas');
+  const H = canvas.clientHeight || 1350;
+  canvas.style.transform = `scale(${z})`;
+  $('#zoomWrap').style.height = (H * z) + 'px';
+  $('#zoomLabel').textContent = String(z).replace('.', ',') + '×';
+  const sc = $('#mapScroll');
+  sc.scrollLeft = Math.max(0, (sc.scrollWidth - sc.clientWidth) / 2);
+}
+
+$('#zoomIn').addEventListener('click', () => { if(zoomIdx < ZOOMS.length - 1){ zoomIdx++; applyZoom(); } });
+$('#zoomOut').addEventListener('click', () => { if(zoomIdx > 0){ zoomIdx--; applyZoom(); } });
+$('#panelToggle').addEventListener('click', () => {
+  const s = $('.side');
+  s.classList.toggle('open');
+  $('#panelToggle').textContent = s.classList.contains('open') ? 'Painel ▶' : '◀ Painel';
+});
+
+/* ---------- sidebar ---------- */
+function renderSidebar(){
+  let doneT = 0, starsT = 0, maxT = 0, bossT = 0;
+  SUBJECTS.forEach(s => {
+    const st = subjectStats(s.id);
+    doneT += st.done; starsT += st.stars; maxT += st.maxStars; bossT += st.bosses;
+  });
+  const pct = Math.round(doneT / 48 * 100);
+
+  $('#stPhases').textContent = `${doneT} / 48`;
+  $('#stStars').textContent = `${starsT} / ${maxT}`;
+  $('#stBosses').textContent = `${bossT} / 12`;
+  $('#stWorldPct').textContent = pct + '%';
+  $('#worldFill').style.width = pct + '%';
+
+  /* próxima missão da cidade */
+  const nm = nextMission();
+  if(nm){
+    const mission = nm.phase;
+    $('#missionName').textContent = mission.title;
+    $('#missionUnit').textContent = `${nm.subject.name} · ${mission.unit} · ${mission.type === 'boss' ? 'Missão de Elite' : 'Missão ' + (mission.idx + 1)}`;
+    $('#missionBtn').textContent = mission.type === 'boss' ? 'Encarar a elite' : 'Ir para a missão';
+    $('#missionBtn').onclick = () => { scrollToMission(); openPhase(mission.id); };
+  } else {
+    $('#missionName').textContent = 'Cidade dominada! 🏆';
+    $('#missionUnit').textContent = 'Todas as 48 missões da cidade foram concluídas.';
+    $('#missionBtn').textContent = 'Rever a cidade';
+    $('#missionBtn').onclick = () => { $('#mapScroll').scrollTop = 0; };
+  }
+
+  /* ranking da semana (por XP semanal) */
+  const rivals = [
+    { name:'Júlia M.', xp:210 }, { name:'Pedro H.', xp:150 },
+    { name:'Ana C.', xp:120 }, { name:'Lucas P.', xp:80 },
+  ];
+  const rows = [...rivals, { name:'Você', xp:state.weeklyXP, me:true }]
+    .sort((a,b) => b.xp - a.xp);
+  $('#rankList').innerHTML = rows.map((r,i) => `
+    <div class="rank-row ${r.me ? 'me' : ''}">
+      <span class="pos">${i+1}</span>
+      <span class="rname">${r.name}</span>
+      <span class="rxp">${r.xp} XP</span>
+    </div>`).join('');
+
+  /* medalhas */
+  const anyPerfect = SUBJECTS.some(s =>
+    buildPhases(s).some(p => p.type === 'lesson' && starsOf(p.id) === 3));
+  const allStars = SUBJECTS.reduce((acc,s) => acc + subjectStats(s.id).stars, 0);
+  const bossDone = SUBJECTS.some(s => subjectStats(s.id).bosses > 0);
+  const worldDoneAny = SUBJECTS.every(s => {
+    const ss = subjectStats(s.id); return ss.done === ss.phases.length;
+  });
+  const badges = [
+    { icon:ICONS.flag(),  name:'Primeira missão',   got: Object.keys(state.completed).length > 0 },
+    { icon:ICONS.star(),  name:'Nota máxima',        got: anyPerfect },
+    { icon:ICONS.crown(), name:'Elite da cidade',    got: bossDone },
+    { icon:ICONS.bolt(),  name:'Constelação (10★)',  got: allStars >= 10 },
+    { icon:ICONS.flame(), name:'Ofensiva 7 dias',    got: state.streak >= 7 },
+    { icon:ICONS.globe(), name:'Cidade completa',    got: worldDoneAny },
+  ];
+  $('#badgeGrid').innerHTML = badges.map(b => `
+    <div class="badge ${b.got ? '' : 'off'}">
+      <div class="bico">${b.got ? b.icon : ICONS.lock()}</div>
+      <span>${b.name}</span>
+    </div>`).join('');
+}
+
+function renderAll(){
+  renderLegend();
+  renderHeader();
+  renderMap();
+  renderSidebar();
+}
+
+function scrollToMission(){
+  const nm = nextMission();
+  if(!nm) return;
+  const W = Math.max(340, $('#mapCanvas').clientWidth || 900);
+  const { per } = cityGeom(W);
+  const z = ZOOMS[zoomIdx];
+  const sc = $('#mapScroll');
+  sc.style.scrollBehavior = 'smooth';
+  sc.scrollTop = Math.max(0, per[nm.subject.id][nm.phase.idx].y * z - 320);
+}
+
+function scrollToSubject(subId){
+  const W = Math.max(340, $('#mapCanvas').clientWidth || 900);
+  const { per } = cityGeom(W);
+  const pts = per[subId];
+  const midY = pts.reduce((a,p) => a + p.y, 0) / pts.length;
+  const z = ZOOMS[zoomIdx];
+  const sc = $('#mapScroll');
+  sc.style.scrollBehavior = 'smooth';
+  sc.scrollTop = Math.max(0, midY * z - 320);
+}
+
+/* ================================================================
+   MODAL — detalhe da fase, simulação e resultado
+   ================================================================ */
+let modalPhase = null;
+
+function openModal(){ $('#modalOverlay').classList.add('open'); }
+function closeModal(){ $('#modalOverlay').classList.remove('open'); modalPhase = null; }
+
+$('#modalClose').addEventListener('click', closeModal);
+$('#modalOverlay').addEventListener('click', e => { if(e.target.id === 'modalOverlay') closeModal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+function starsRowHtml(st, size){
+  return [1,2,3].map(k =>
+    `<span style="color:#d99a17" class="${k<=st?'':'off'}">${ICONS.star(k<=st?'':'off')}</span>`).join('');
+}
+
+function openPhase(phaseId){
+  const subject = SUBJECTS.find(s => s.id === phaseId.split('-')[0]);
+  const phases = buildPhases(subject);
+  const p = phases.find(x => x.id === phaseId);
+  const st = starsOf(p.id);
+  const info = unlockInfo(p, phases);
+  const isBoss = p.type === 'boss';
+  modalPhase = p;
+
+  const tiers = TIERS.map(t => `
+    <div class="tier ${t.cls}">
+      <span class="dot"></span>
+      <div><strong>${t.name}</strong><p>${t.desc}</p></div>
+    </div>`).join('');
+
+  let body = `
+    <span class="m-unit">${p.unit}${isBoss ? ' · Missão de Elite' : ' · Missão ' + (p.idx + 1)}</span>
+    <h3 class="m-title">${p.title}</h3>
+    <p class="m-desc">${isBoss
+      ? 'A missão mais pesada do distrito: mistura tudo o que você aprendeu nas três missões anteriores. Vale muito mais XP — e vencê-la libera a próxima área da cidade.'
+      : 'Missão em três degraus de dificuldade. O desempenho define suas estrelas: 60% acerta 1★, 80% vale 2★ e 90%+ vale 3★.'}</p>
+  `;
+
+  if(st > 0){
+    body += `<div class="m-best">Melhor resultado: <span class="stars">${starsRowHtml(st)}</span>
+      ${st < 3 ? '· refaça para tentar 3★' : '· resultado máximo!'}</div>`;
+  }
+
+  if(!info.ok){
+    body += info.reason === 'prev'
+      ? `<div class="m-locked-box">🔒 Esta missão ainda está bloqueada.<br>Conclua a missão anterior — <strong>${info.prev.title}</strong> — para abrir o caminho.</div>`
+      : `<div class="m-locked-box">🔒 A Missão de Elite só abre para quem domina o distrito.<br>Você tem <strong>★ ${info.have}/${info.need}</strong> nas missões deste distrito. Refaça missões para melhorar suas estrelas!</div>`;
+    body += `<div class="m-cta" style="margin-top:16px"><button class="btn-ghost" onclick="closeModal()">Voltar ao mapa</button></div>`;
+  } else {
+    body += `
+      ${tiers}
+      <div class="m-rewards">
+        <div class="rew">⚡ até ${p.rew.xp * 3} XP</div>
+        <div class="rew">🪙 até ${p.rew.coins * 3} moedas</div>
+        <div class="rew">★ até 3 estrelas</div>
+      </div>
+      <div class="m-cta">
+        <button class="btn-gold" id="startPhase">${st > 0 ? 'Refazer missão' : (isBoss ? 'Encarar a elite!' : 'Iniciar missão')}</button>
+        <p class="m-note">feedback imediato a cada questão · suas estrelas dependem do desempenho</p>
+      </div>`;
+  }
+
+  $('#modalBody').innerHTML = body;
+  openModal();
+
+  const btn = $('#startPhase');
+  if(btn) btn.addEventListener('click', () => runPhase(p));
+}
+
+/* executa a fase: usa o banco de questões real; cai na simulação se a fase não tiver questões */
+function runPhase(p){
+  const bank = (window.QUESTOES || {})[p.id];
+  if(bank && bank.q && bank.q.length) startQuiz(p, bank.q);
+  else runSimulated(p);
+}
+
+/* ---------- quiz real ---------- */
+let quiz = null;
+const TIER_BY_KEY = {
+  fix:{cls:'t1', name:'Fixação'},
+  apl:{cls:'t2', name:'Aplicação'},
+  des:{cls:'t3', name:'Desafio'},
+};
+
+function startQuiz(p, questions){
+  quiz = { p, qs:questions, i:0, hits:0, results:[], answered:false };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const { p, qs, i } = quiz;
+  const q = qs[i];
+  const tier = TIER_BY_KEY[q.t] || TIER_BY_KEY.fix;
+  const letters = ['A','B','C','D'];
+
+  $('#modalBody').innerHTML = `
+    <span class="m-unit">${p.title}</span>
+    <div class="quiz-head">
+      <span class="tier-chip ${tier.cls}"><span class="dot"></span>${tier.name}</span>
+      <span class="quiz-count">Questão ${i + 1} de ${qs.length}</span>
+    </div>
+    <div class="run-q small">
+      ${qs.map((_, k) => {
+        if(k > i) return `<div class="qdot">${k + 1}</div>`;
+        if(k === i) return `<div class="qdot current">${k + 1}</div>`;
+        return `<div class="qdot ${quiz.results[k] ? 'ok' : 'miss'}">${quiz.results[k] ? '✓' : '✕'}</div>`;
+      }).join('')}
+    </div>
+    <h3 class="q-text">${q.q}</h3>
+    <div class="opts">
+      ${q.opts.map((op, k) => `
+        <button class="opt" data-k="${k}">
+          <span class="opt-letter">${letters[k]}</span><span>${op}</span>
+        </button>`).join('')}
+    </div>
+    <div class="exp-box" id="expBox" hidden></div>
+    <button class="btn-gold" id="nextQ" hidden>${i < qs.length - 1 ? 'Próxima questão' : 'Ver resultado'}</button>`;
+
+  document.querySelectorAll('.opt').forEach(b =>
+    b.addEventListener('click', () => answerQuestion(+b.dataset.k)));
+}
+
+function answerQuestion(k){
+  if(quiz.answered) return;
+  quiz.answered = true;
+
+  const q = quiz.qs[quiz.i];
+  const ok = k === q.a;
+  quiz.results.push(ok);
+  if(ok) quiz.hits++;
+
+  document.querySelectorAll('.opt').forEach(b => {
+    const bk = +b.dataset.k;
+    b.disabled = true;
+    if(bk === q.a) b.classList.add('ok');
+    else if(bk === k) b.classList.add('miss');
+    else b.classList.add('dim');
+  });
+
+  const dots = document.querySelectorAll('.run-q .qdot');
+  const d = dots[quiz.i];
+  d.classList.remove('current');
+  d.classList.add(ok ? 'ok' : 'miss');
+  d.textContent = ok ? '✓' : '✕';
+
+  const exp = $('#expBox');
+  exp.hidden = false;
+  exp.innerHTML = `<strong>${ok ? '✔ Resposta certa!' : '✘ Não foi dessa vez.'}</strong> ${q.exp}`;
+
+  const next = $('#nextQ');
+  next.hidden = false;
+  next.addEventListener('click', () => {
+    quiz.i++;
+    quiz.answered = false;
+    if(quiz.i < quiz.qs.length){
+      renderQuestion();
+    } else {
+      const p = quiz.p, hits = quiz.hits;
+      quiz = null;
+      showResult(p, hits);
+    }
+  });
+}
+
+/* simulação antiga (reserva para fases sem questões cadastradas) */
+function runSimulated(p){
+  const weights = [[5,.35],[4,.40],[3,.15],[2,.10]];
+  const roll = Math.random();
+  let acc = 0, hits = 5;
+  for(const [h,w] of weights){ acc += w; if(roll <= acc){ hits = h; break; } }
+
+  $('#modalBody').innerHTML = `
+    <span class="m-unit">${p.title}</span>
+    <h3 class="m-title" style="font-size:20px">Respondendo…</h3>
+    <div class="run-q" id="runQ">
+      ${[1,2,3,4,5].map(i => `<div class="qdot" id="q${i}">${i}</div>`).join('')}
+    </div>
+    <p class="run-label" id="runLabel">Questão 1 de 5</p>`;
+
+  const results = [];
+  for(let i = 0; i < 5; i++) results.push(i < hits);
+
+  let i = 0;
+  const tick = setInterval(() => {
+    const dot = $('#q' + (i + 1));
+    dot.classList.add(results[i] ? 'ok' : 'miss');
+    dot.textContent = results[i] ? '✓' : '✕';
+    $('#runLabel').textContent = i < 4 ? `Questão ${i + 2} de 5` : 'Calculando resultado…';
+    i++;
+    if(i >= 5){
+      clearInterval(tick);
+      setTimeout(() => showResult(p, hits), 650);
+    }
+  }, 480);
+}
+
+function showResult(p, hits){
+  const pct = hits / 5 * 100;
+  const earned = pct >= 90 ? 3 : pct >= 80 ? 2 : pct >= 60 ? 1 : 0;
+  const old = starsOf(p.id);
+
+  const lvlBefore = levelInfo(state.xp).level;
+  const mult = state.mult || 1;
+  let xpGain = 0, coinGain = 0;
+
+  if(earned > old){
+    const diff = old === 0 ? earned : (earned - old);
+    xpGain = p.rew.xp * diff * mult;
+    coinGain = p.rew.coins * diff;
+    state.completed[p.id] = earned;
+  } else if(earned > 0){
+    xpGain = 5 * mult; // recompensa simbólica de esforço na refação
+  }
+  /* multiplicador estilo GTA: 2★+ sobe (máx ×3); reprovar zera */
+  if(earned >= 2) state.mult = Math.min(3, mult + 1);
+  else if(earned === 0) state.mult = 1;
+  state.xp += xpGain;
+  state.coins += coinGain;
+  state.weeklyXP += xpGain;
+  save();
+
+  const lvlAfter = levelInfo(state.xp).level;
+
+  let body;
+  if(earned === 0){
+    body = `
+      <h3 class="result-title">Deu ruim! 💥</h3>
+      <p class="result-sub">Você acertou ${hits}/5 (precisa de 3/5 para concluir).<br>
+      A <strong>Trilha de Reforço</strong> desta missão foi sinalizada no painel do professor.${mult > 1 ? '<br>O multiplicador de XP voltou para ×1.' : ''}</p>
+      <div class="result-gains"><div class="gain" style="animation-delay:.1s">+0<small>XP</small></div></div>
+      <button class="btn-gold" onclick="openPhase('${p.id}')">Tentar novamente</button>
+      <button class="btn-ghost" onclick="closeModal()">Voltar ao mapa</button>`;
+  } else {
+    const improved = earned > old;
+    body = `
+      <div class="result-stars">
+        ${[1,2,3].map(k => k <= earned
+          ? ICONS.star('pop').replace('<svg', `<svg style="color:#e8a71c;animation-delay:${.12*k}s"`)
+          : ICONS.star('off')).join('')}
+      </div>
+      <h3 class="result-title">${old > 0 ? (improved ? 'Novo recorde!' : 'Missão refeita!') : (p.type === 'boss' ? 'Distrito dominado! 👑' : 'Missão cumprida!')}</h3>
+      <p class="result-sub">Você acertou ${hits}/5 questões${improved ? '' : ' — seu melhor resultado foi mantido'}</p>
+      <div class="result-gains">
+        <div class="gain" style="animation-delay:.15s">+${xpGain}<small>XP</small></div>
+        <div class="gain" style="animation-delay:.3s">+${coinGain}<small>moedas</small></div>
+        <div class="gain" style="animation-delay:.45s">${earned}★<small>estrelas</small></div>
+      </div>
+      ${mult > 1 ? `<div class="multline">🔥 Multiplicador ×${mult} aplicado!${state.mult > mult ? ` Subiu para ×${state.mult}.` : ''}</div>` : ''}
+      ${lvlAfter > lvlBefore ? `<div class="levelup">🎉 Você subiu para o Nível ${lvlAfter} — ${levelTitle(lvlAfter)}!</div>` : ''}
+      <button class="btn-gold" onclick="finishPhase('${p.id}')">Continuar</button>`;
+  }
+
+  $('#modalBody').innerHTML = body;
+  if(earned === 0) renderAll(); // atualiza mesmo sem concluir (nada muda, mas garante)
+}
+
+/* fecha o resultado, atualiza mapa e solta partículas no nó */
+function finishPhase(phaseId){
+  closeModal();
+  renderAll();
+
+  const nodeBtn = document.querySelector(`[data-phase="${phaseId}"]`);
+  if(nodeBtn){
+    const canvas = $('#mapCanvas');
+    const n = nodeBtn.getBoundingClientRect();
+    const c = canvas.getBoundingClientRect();
+    burst(n.left - c.left + n.width / 2, n.top - c.top + n.height / 2);
+    nodeBtn.scrollIntoView({ block:'center', behavior:'smooth' });
+  }
+}
+
+function burst(x, y){
+  const canvas = $('#mapCanvas');
+  const colors = ['#ffc94d','#3ecf94','#f7ead1','#ff6b5e'];
+  for(let i = 0; i < 16; i++){
+    const el = document.createElement('span');
+    el.className = 'particle';
+    const ang = (i / 16) * Math.PI * 2 + Math.random() * .5;
+    const dist = 45 + Math.random() * 65;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.background = colors[i % colors.length];
+    el.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+    el.style.setProperty('--dy', Math.sin(ang) * dist + 'px');
+    canvas.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+}
+
+/* ---------- reset & init ---------- */
+$('#resetBtn').addEventListener('click', () => {
+  if(confirm('Zerar todo o progresso do protótipo?')){
+    localStorage.removeItem(SAVE_KEY);
+    state = freshState();
+    renderAll();
+    scrollToMission();
+  }
+});
+
+let resizeT;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeT);
+  resizeT = setTimeout(renderMap, 180);
+});
+
+renderAll();
+scrollToMission();
+</script>
+</body>
+</html>
