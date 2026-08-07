@@ -147,7 +147,8 @@ function step(){
   renderer.render(scene, camera);
   requestAnimationFrame(step);
 }
-step();
+/* step() é chamado no fim do arquivo — o 1º frame roda síncrono e
+   precisa que todas as const abaixo já estejam inicializadas */
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
@@ -389,7 +390,7 @@ function answerQ(k){
 }
 
 function resultQ(){
-  const { p, hits } = quiz;
+  const { p, s, hits } = quiz;
   const pct = hits / quiz.qs.length * 100;
   const earned = pct >= 90 ? 3 : pct >= 80 ? 2 : pct >= 60 ? 1 : 0;
   const old = starsOf(p.id);
@@ -436,11 +437,12 @@ function resultQ(){
   };
   $id('qclose').addEventListener('click', close);
   const retry = $id('qretry');
-  if(retry) retry.addEventListener('click', () => { quiz = null; openQuiz(p); });
+  if(retry) retry.addEventListener('click', () => { quiz = null; openQuiz(p, s); });
 }
 
 buildMarkers();
 window.__fpsMissionsReady = true;
+step();
 
 /* ---------- HUD: distrito atual pela posição ---------- */
 function updateHudDistrict(){
