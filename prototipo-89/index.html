@@ -679,9 +679,9 @@
   /* personagem do aluno */
   .student{
     position:absolute;z-index:5;pointer-events:none;width:40px;height:52px;
-    transform:translate(-50%,-50%) rotate(var(--dir,0deg));
-    transition:transform .18s ease;
+    transform:translate(-50%,-50%) rotate(var(--dir,0deg)) skewX(var(--lean,0deg));
   }
+  .student.walking{transition:none}
   .student img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
   .student.walking img{animation:wig .26s ease-in-out infinite}
   @keyframes wig{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
@@ -694,6 +694,47 @@
     animation:arr-bob .9s ease-in-out infinite;
   }
   @keyframes arr-bob{0%,100%{margin-top:0}50%{margin-top:-11px}}
+  .objective-arrow.pulse-ring::after{
+    content:'';position:absolute;left:50%;top:4px;width:28px;height:28px;
+    margin-left:-14px;margin-top:-20px;border-radius:50%;
+    border:2px solid rgba(255,212,0,.7);
+    animation:obj-ring 1.2s ease-out infinite;
+  }
+  @keyframes obj-ring{
+    from{transform:scale(.6);opacity:.9}
+    to{transform:scale(1.8);opacity:0}
+  }
+  .fx-dust{
+    position:absolute;z-index:4;width:3px;height:3px;border-radius:50%;
+    background:rgba(200,180,140,.75);pointer-events:none;
+    animation:dust-rise .4s ease-out forwards;
+  }
+  @keyframes dust-rise{to{transform:translateY(-10px);opacity:0}}
+  .fx-confetti{
+    position:absolute;z-index:8;width:6px;height:6px;pointer-events:none;
+    animation:confetti-fall .8s ease-in forwards;
+  }
+  @keyframes confetti-fall{
+    to{transform:translateY(70px) rotate(180deg);opacity:0}
+  }
+  .joy-base{
+    position:fixed;z-index:40;width:88px;height:88px;border-radius:50%;
+    background:rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.35);
+    pointer-events:none;transform:translate(-50%,-50%);
+  }
+  .joy-knob{
+    position:absolute;left:50%;top:50%;width:44px;height:44px;border-radius:50%;
+    background:rgba(255,201,77,.85);transform:translate(-50%,-50%);
+    box-shadow:0 2px 8px rgba(0,0,0,.4);
+  }
+  .mute-btn{
+    min-width:44px;min-height:44px;border-radius:10px;padding:0 10px;
+    background:var(--glass);border:1px solid var(--card-line);color:var(--cream);
+    font-size:18px;line-height:1;cursor:pointer;
+  }
+  .mute-btn:hover{border-color:var(--acc)}
+  .map-scroll,.map-canvas{touch-action:none}
+  .zoom-ctl button{min-width:44px;min-height:44px}
   .multline{
     text-align:center;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.06em;
     color:var(--gold);margin:0 0 12px;
@@ -782,6 +823,7 @@
         </div>
         <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
       </div>
+      <button type="button" class="mute-btn" id="muteBtn" title="Som ligado/desligado" aria-label="Alternar som">🔊</button>
       <div class="avatar-wrap" title="Seu avatar">
         <svg viewBox="0 0 52 52" aria-hidden="true">
           <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(247,234,209,.15)" stroke-width="3"/>
@@ -813,7 +855,7 @@
         </div>
       </div>
       <button class="panel-toggle" id="panelToggle">◀ Painel</button>
-      <div class="drive-hint">⌨️ setas / WASD para dirigir · Shift corre</div>
+      <div class="drive-hint">⌨️ setas / WASD · Shift corre · 👆 toque no mapa</div>
       <div class="zoom-ctl">
         <button id="zoomIn" aria-label="Mais zoom">+</button>
         <span class="zlabel" id="zoomLabel">1×</span>
@@ -867,6 +909,7 @@
 <script src="questoes/cie.js"></script>
 <script src="questoes/his.js"></script>
 <script src="assets/mascara.js"></script>
+<script src="js/rota.js"></script>
 <script>
 'use strict';
 
@@ -1209,19 +1252,25 @@ function renderMap(){
   if(nm){
     const pos = per[nm.subject.id][nm.phase.idx];
     const arrow = document.createElement('div');
-    arrow.className = 'objective-arrow';
+    arrow.className = 'objective-arrow pulse-ring';
     arrow.style.left = (pos.x - 13) + 'px';
     arrow.style.top = (pos.y - (nm.phase.type === 'boss' ? 80 : 60)) + 'px';
+    arrow.dataset.ox = String(pos.x);
+    arrow.dataset.oy = String(pos.y - (nm.phase.type === 'boss' ? 70 : 50));
     $('#nodesLayer').appendChild(arrow);
+    objectivePos.x = pos.x;
+    objectivePos.y = pos.y - (nm.phase.type === 'boss' ? 70 : 50);
+    objectivePinged = false;
     $('#districtBar').textContent = `${nm.phase.unit} · ${nm.subject.name}`;
     if(studentPos.x == null){
-      const sp = nearestIntersection(pos.x, pos.y + 40);
+      const sp = snapWalkable(pos.x, pos.y + 40);
       placeStudent(sp[0], sp[1]);
     } else {
       placeStudent(studentPos.x, studentPos.y);
     }
   } else {
     $('#districtBar').textContent = 'CIDADE DOMINADA 🏆';
+    objectivePos.x = objectivePos.y = null;
     const tx = CITY.trophy[0] * W, ty = CITY.trophy[1] * H + 64;
     if(studentPos.x == null){
       const sp = snapWalkable(tx, ty);
@@ -1238,9 +1287,17 @@ function renderMap(){
 }
 
 /* ---------- aluno andando pelas ruas ---------- */
-const AV = { v:[0.214,0.500,0.773], h:[0.152,0.239,0.334,0.463,0.612,0.734,0.876] };
 const studentPos = { x:null, y:null };
+const vel = { x:0, y:0 };
+const objectivePos = { x:null, y:null };
+const TOUCH = { active:false, dx:0, dy:0, id:null, x0:0, y0:0, t0:0, moved:false };
 let walkRaf = null;
+let facing = 0;
+let objectivePinged = false;
+let dustAcc = 0;
+let stepAcc = 0;
+let suppressMapClick = 0;
+let joyEl = null;
 
 function placeStudent(x, y){
   studentPos.x = x; studentPos.y = y;
@@ -1250,85 +1307,169 @@ function placeStudent(x, y){
 }
 
 function setDir(dx, dy){
-  let deg = 0;
-  if(Math.abs(dx) > Math.abs(dy)) deg = dx > 0 ? -90 : 90;
-  else deg = dy < 0 ? 180 : 0;
-  $('#student').style.setProperty('--dir', deg + 'deg');
+  if(Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return;
+  const deg = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? -90 : 90) : (dy < 0 ? 180 : 0);
+  facing = deg;
+  const stu = $('#student');
+  stu.style.setProperty('--dir', deg + 'deg');
+  stu.style.setProperty('--lean', '0deg');
 }
 
-/* acha o cruzamento de avenida mais próximo (rua garantida para nascer/parar) */
-function nearestIntersection(x, y){
-  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
-  const xv = AV.v.map(rx => rx * W).reduce((a,b) => Math.abs(b - x) < Math.abs(a - x) ? b : a);
-  const yh = AV.h.map(ry => ry * H).reduce((a,b) => Math.abs(b - y) < Math.abs(a - y) ? b : a);
-  return [xv, yh];
-}
-
-/* rota Manhattan: sobe/desce até uma avenida vertical, cruza até a horizontal do alvo e desce nele */
-function streetRoute(cur, tgt){
-  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
-  const xv = AV.v.map(rx => rx * W).reduce((a,b) => Math.abs(b - cur.x) < Math.abs(a - cur.x) ? b : a);
-  const yh = AV.h.map(ry => ry * H).reduce((a,b) => Math.abs(b - tgt.y) < Math.abs(a - tgt.y) ? b : a);
-  const raw = [[xv, cur.y],[xv, yh],[tgt.x, yh],[tgt.x, tgt.y]];
-  const out = [];
-  let last = { x:cur.x, y:cur.y };
-  for(const [px,py] of raw){
-    if(Math.hypot(px - last.x, py - last.y) > 12){ out.push([px,py]); last = { x:px, y:py }; }
-  }
-  return out;
+function setDirSmooth(vx, vy, dt){
+  if(Math.hypot(vx, vy) < 8) return;
+  const deg = Math.abs(vx) > Math.abs(vy) ? (vx > 0 ? -90 : 90) : (vy < 0 ? 180 : 0);
+  let d = deg - facing;
+  while(d > 180) d -= 360;
+  while(d < -180) d += 360;
+  const maxStep = (12 * 180 / Math.PI) * dt;
+  if(Math.abs(d) <= maxStep) facing = deg;
+  else facing += Math.sign(d) * maxStep;
+  const lean = Math.max(-4, Math.min(4, d * 0.08));
+  const stu = $('#student');
+  stu.style.setProperty('--dir', facing + 'deg');
+  stu.style.setProperty('--lean', lean + 'deg');
 }
 
 function walkTo(tx, ty){
   let snapped = snapWalkable(tx, ty);
-  if(!feetWalkable(snapped[0], snapped[1])) snapped = nearestIntersection(tx, ty);
+  if(!feetWalkable(snapped[0], snapped[1])) return;
   tx = snapped[0]; ty = snapped[1];
   if(studentPos.x == null){ placeStudent(tx, ty); return; }
   if(Math.hypot(tx - studentPos.x, ty - studentPos.y) < 6) return;
-  const pts = streetRoute({ x:studentPos.x, y:studentPos.y }, { x:tx, y:ty });
+
+  const ini = maskCell(studentPos.x, studentPos.y);
+  const fim = maskCell(tx, ty);
+  if(window.MASCARA){
+    if(MASCARA.rows[ini[1]]?.[ini[0]] !== '1'){
+      const sp = snapWalkable(studentPos.x, studentPos.y);
+      placeStudent(sp[0], sp[1]);
+      const c2 = maskCell(sp[0], sp[1]);
+      ini[0] = c2[0]; ini[1] = c2[1];
+    }
+    if(MASCARA.rows[fim[1]]?.[fim[0]] !== '1'){
+      const c2 = maskCell(tx, ty);
+      fim[0] = c2[0]; fim[1] = c2[1];
+    }
+  }
+
+  let cells = window.ROTA && window.MASCARA ? ROTA.aStar(MASCARA, ini, fim) : null;
+  if(cells) cells = ROTA.simplificar(MASCARA, cells);
+  const pts = cells
+    ? cells.map(([gx, gy]) => cellCenter(gx, gy))
+    : (feetWalkable(tx, ty) ? [[tx, ty]] : null);
+  if(!pts || !pts.length) return;
+
+  vel.x = vel.y = 0;
+  if(driveRaf){ cancelAnimationFrame(driveRaf); driveRaf = null; }
   if(walkRaf) cancelAnimationFrame(walkRaf);
   const stu = $('#student');
   stu.classList.add('walking');
   let seg = 0, last = performance.now();
-  const SPEED = 320; // px/s
+  const SPEED = 320;
   function step(now){
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
-    if(seg >= pts.length){ stu.classList.remove('walking'); setDir(0, 1); return; }
+    if(seg >= pts.length){ stu.classList.remove('walking'); setDir(0, 1); walkRaf = null; return; }
     const [nx, ny] = pts[seg];
     const dx = nx - studentPos.x, dy = ny - studentPos.y;
     const dist = Math.hypot(dx, dy);
-    if(dist < 4){ placeStudent(nx, ny); seg++; cameraFollow(); walkRaf = requestAnimationFrame(step); return; }
+    if(dist < 4){
+      placeStudent(nx, ny); seg++;
+      cameraFollow(dt);
+      checkObjectiveProximity();
+      walkRaf = requestAnimationFrame(step);
+      return;
+    }
     setDir(dx, dy);
     const move = Math.min(dist, SPEED * dt);
     placeStudent(studentPos.x + dx / dist * move, studentPos.y + dy / dist * move);
-    cameraFollow();
+    cameraFollow(dt);
+    checkObjectiveProximity();
     walkRaf = requestAnimationFrame(step);
   }
   walkRaf = requestAnimationFrame(step);
 }
 
-/* clique livre no mapa: o aluno vai andando até lá */
+/* clique livre no mapa: o aluno vai andando até lá (A*) */
 $('#mapCanvas').addEventListener('click', e => {
   if(e.target.closest('.node')) return;
+  if(performance.now() < suppressMapClick) return;
   const r = $('#mapCanvas').getBoundingClientRect();
   const z = ZOOMS[zoomIdx];
   walkTo((e.clientX - r.left) / z, (e.clientY - r.top) / z);
 });
 
-/* ---------- dirigindo o aluno (setas / WASD) ---------- */
+/* ---------- dirigindo o aluno (setas / WASD / touch) ---------- */
 const KEYS = {};
 let driveRaf = null;
+const SOM_KEY = 'gtaTrilha89SomV1';
 
+function soundOn(){ return localStorage.getItem(SOM_KEY) !== '0'; }
+function setSoundOn(on){
+  localStorage.setItem(SOM_KEY, on ? '1' : '0');
+  const b = $('#muteBtn');
+  if(b){ b.textContent = on ? '🔊' : '🔇'; b.title = on ? 'Som ligado' : 'Som desligado'; }
+}
+function ensureAudio(){
+  if(!ensureAudio.ctx){
+    try{ ensureAudio.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(_){ return null; }
+  }
+  if(ensureAudio.ctx.state === 'suspended') ensureAudio.ctx.resume();
+  return ensureAudio.ctx;
+}
+function sfxPing(){
+  if(!soundOn()) return;
+  const ctx = ensureAudio();
+  if(!ctx) return;
+  try{
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = 880; g.gain.value = 0.08;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+    o.stop(ctx.currentTime + 0.09);
+  }catch(_){}
+}
+function sfxStep(){
+  if(!soundOn()) return;
+  const ctx = ensureAudio();
+  if(!ctx) return;
+  try{
+    const n = 0.04;
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * n), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const f = ctx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 900;
+    const g = ctx.createGain(); g.gain.value = 0.045;
+    src.connect(f); f.connect(g); g.connect(ctx.destination);
+    src.start();
+  }catch(_){}
+}
+
+function maskCell(x, y){
+  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
+  return [Math.floor(x / W * MASCARA.w), Math.floor(y / H * MASCARA.h)];
+}
+function cellCenter(gx, gy){
+  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
+  return [(gx + 0.5) * W / MASCARA.w, (gy + 0.5) * H / MASCARA.h];
+}
 function maskWalkable(x, y){
   if(!window.MASCARA) return true;
-  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
-  const gx = Math.floor(x / W * MASCARA.w), gy = Math.floor(y / H * MASCARA.h);
+  const [gx, gy] = maskCell(x, y);
   if(gx < 0 || gy < 0 || gx >= MASCARA.w || gy >= MASCARA.h) return false;
   return MASCARA.rows[gy][gx] === '1';
 }
 
 function feetWalkable(x, y){
-  return maskWalkable(x - 9, y + 14) || maskWalkable(x, y + 14) || maskWalkable(x + 9, y + 14);
+  if(!window.MASCARA) return true;
+  for(const [ox, oy] of [[-9,11],[0,11],[9,11],[-9,16],[0,16],[9,16]])
+    if(!maskWalkable(x + ox, y + oy)) return false;
+  return true;
 }
 
 /* acha o ponto andável mais próximo (para parar na calçada em frente ao prédio) */
@@ -1347,20 +1488,39 @@ function snapWalkable(x, y){
   return [x, y];
 }
 
-/* câmera: mantém o aluno dentro da faixa central (35%–65% da tela);
-   quando ele se aproxima da borda, a tela rola junto */
-function cameraFollow(){
+function cameraFollow(dt = 1/60){
   if(studentPos.x == null) return;
   const sc = $('#mapScroll'), z = ZOOMS[zoomIdx];
-  sc.style.scrollBehavior = 'auto';   // smooth atrapalha o seguimento por frames
-  const viewH = sc.clientHeight, viewW = sc.clientWidth;
-  const sy = studentPos.y * z, sx = studentPos.x * z;
-  const top = sc.scrollTop + viewH * 0.35, bottom = sc.scrollTop + viewH * 0.65;
-  if(sy < top) sc.scrollTop -= (top - sy) * 0.25;
-  else if(sy > bottom) sc.scrollTop += (sy - bottom) * 0.25;
-  const left = sc.scrollLeft + viewW * 0.35, right = sc.scrollLeft + viewW * 0.65;
-  if(sx < left) sc.scrollLeft -= (left - sx) * 0.25;
-  else if(sx > right) sc.scrollLeft += (sx - right) * 0.25;
+  sc.style.scrollBehavior = 'auto';
+  const alvoX = (studentPos.x + vel.x * 0.35) * z - sc.clientWidth / 2;
+  const alvoY = (studentPos.y + vel.y * 0.35) * z - sc.clientHeight / 2;
+  const k = 1 - Math.exp(-4 * dt);
+  sc.scrollLeft += (alvoX - sc.scrollLeft) * k;
+  sc.scrollTop  += (alvoY - sc.scrollTop) * k;
+}
+
+function spawnDust(){
+  const canvas = $('#mapCanvas');
+  if(!canvas || studentPos.x == null) return;
+  for(let i = 0; i < 2; i++){
+    const el = document.createElement('div');
+    el.className = 'fx fx-dust';
+    el.style.left = (studentPos.x + (Math.random() * 10 - 5)) + 'px';
+    el.style.top = (studentPos.y + 14 + Math.random() * 4) + 'px';
+    el.addEventListener('animationend', () => el.remove());
+    canvas.appendChild(el);
+  }
+}
+
+function checkObjectiveProximity(){
+  if(objectivePos.x == null || studentPos.x == null) return;
+  const d = Math.hypot(studentPos.x - objectivePos.x, studentPos.y - objectivePos.y);
+  if(d < 60 && !objectivePinged){
+    objectivePinged = true;
+    sfxPing();
+  } else if(d >= 80){
+    objectivePinged = false;
+  }
 }
 
 function driveStep(now){
@@ -1369,23 +1529,65 @@ function driveStep(now){
   const up = KEYS.arrowup || KEYS.w, down = KEYS.arrowdown || KEYS.s;
   const left = KEYS.arrowleft || KEYS.a, right = KEYS.arrowright || KEYS.d;
   let dx = (right ? 1 : 0) - (left ? 1 : 0), dy = (down ? 1 : 0) - (up ? 1 : 0);
-  if(!dx && !dy){
+  if(TOUCH.active){ dx = TOUCH.dx; dy = TOUCH.dy; }
+  const temInput = Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01;
+  if(temInput){
+    const mag = Math.hypot(dx, dy) || 1;
+    dx /= mag; dy /= mag;
+  } else {
+    dx = 0; dy = 0;
+  }
+
+  const touchRun = TOUCH.active && Math.hypot(TOUCH.dx, TOUCH.dy) > 0.72;
+  const ACEL = 1600, FRICCAO = 8, VMAX = (KEYS.shift || touchRun) ? 340 : 210;
+  vel.x += dx * ACEL * dt;
+  vel.y += dy * ACEL * dt;
+  vel.x -= vel.x * Math.min(1, FRICCAO * dt);
+  vel.y -= vel.y * Math.min(1, FRICCAO * dt);
+  let v = Math.hypot(vel.x, vel.y);
+  if(v > VMAX){ vel.x *= VMAX / v; vel.y *= VMAX / v; v = VMAX; }
+
+  if(v < 4 && !temInput){
+    vel.x = vel.y = 0;
     $('#student').classList.remove('walking');
     driveRaf = null;
     return;
   }
-  const mag = Math.hypot(dx, dy); dx /= mag; dy /= mag;
-  setDir(dx, dy);
-  $('#student').classList.add('walking');
-  const speed = (KEYS.shift ? 340 : 210) * dt;
+  if(v >= 4){
+    setDirSmooth(vel.x, vel.y, dt);
+    $('#student').classList.add('walking');
+  }
+
   const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
-  const nx = Math.max(16, Math.min(W - 16, studentPos.x + dx * speed));
-  const ny = Math.max(16, Math.min(H - 16, studentPos.y + dy * speed));
-  if(feetWalkable(nx, ny)) placeStudent(nx, ny);
-  else if(feetWalkable(nx, studentPos.y)) placeStudent(nx, studentPos.y);
-  else if(feetWalkable(studentPos.x, ny)) placeStudent(studentPos.x, ny);
-  cameraFollow();
+  const sx = vel.x * dt, sy = vel.y * dt;
+  const passos = Math.max(1, Math.ceil(Math.hypot(sx, sy) / 3));
+  for(let i = 0; i < passos; i++){
+    const nx = Math.max(16, Math.min(W - 16, studentPos.x + sx / passos));
+    const ny = Math.max(16, Math.min(H - 16, studentPos.y + sy / passos));
+    const ox = studentPos.x, oy = studentPos.y;
+    if(feetWalkable(nx, ny)) placeStudent(nx, ny);
+    else if(feetWalkable(nx, oy)){ placeStudent(nx, oy); vel.y = 0; }
+    else if(feetWalkable(ox, ny)){ placeStudent(ox, ny); vel.x = 0; }
+    else { vel.x = vel.y = 0; break; }
+  }
+
+  if(v > 250){
+    dustAcc += dt;
+    if(dustAcc >= 0.12){ dustAcc = 0; spawnDust(); }
+  } else dustAcc = 0;
+
+  if(v > 40 && v < 280){
+    stepAcc += dt;
+    if(stepAcc >= 0.26){ stepAcc = 0; sfxStep(); }
+  } else stepAcc = 0;
+
+  cameraFollow(dt);
+  checkObjectiveProximity();
   driveRaf = requestAnimationFrame(driveStep);
+}
+
+function ensureDriveLoop(){
+  if(!driveRaf){ driveStep.last = null; driveRaf = requestAnimationFrame(driveStep); }
 }
 
 window.addEventListener('keydown', e => {
@@ -1394,11 +1596,11 @@ window.addEventListener('keydown', e => {
     e.preventDefault();
     if(walkRaf){ cancelAnimationFrame(walkRaf); walkRaf = null; }
     KEYS[k] = true;
-    if(!feetWalkable(studentPos.x, studentPos.y)){
+    if(studentPos.x != null && !feetWalkable(studentPos.x, studentPos.y)){
       const sp = snapWalkable(studentPos.x, studentPos.y);
-      placeStudent(sp[0], sp[1]);   /* anti-travamento: sempre começa numa rua */
+      placeStudent(sp[0], sp[1]);
     }
-    if(!driveRaf){ driveStep.last = null; driveRaf = requestAnimationFrame(driveStep); }
+    ensureDriveLoop();
   }
   if(k === 'shift') KEYS.shift = true;
 });
@@ -1406,6 +1608,98 @@ window.addEventListener('keyup', e => {
   delete KEYS[e.key.toLowerCase()];
   if(e.key.toLowerCase() === 'shift') KEYS.shift = false;
 });
+
+/* ---------- joystick flutuante (touch) ---------- */
+function canvasXYFromClient(clientX, clientY){
+  const r = $('#mapCanvas').getBoundingClientRect();
+  const z = ZOOMS[zoomIdx];
+  return [(clientX - r.left) / z, (clientY - r.top) / z];
+}
+function removeJoy(){
+  if(joyEl){ joyEl.remove(); joyEl = null; }
+}
+function onMapTouchStart(e){
+  if(e.target.closest('.node') || e.target.closest('button')) return;
+  const t = e.changedTouches[0];
+  if(!t) return;
+  const sc = $('#mapScroll').getBoundingClientRect();
+  /* joystick só na metade inferior da área visível do mapa */
+  if(t.clientY < sc.top + sc.height * 0.45){
+    /* metade superior: deixa como possível tap-to-move no end */
+    TOUCH.id = t.identifier;
+    TOUCH.x0 = t.clientX; TOUCH.y0 = t.clientY; TOUCH.t0 = performance.now();
+    TOUCH.moved = false; TOUCH.active = false; TOUCH.dx = TOUCH.dy = 0;
+    return;
+  }
+  e.preventDefault();
+  if(walkRaf){ cancelAnimationFrame(walkRaf); walkRaf = null; }
+  TOUCH.id = t.identifier;
+  TOUCH.x0 = t.clientX; TOUCH.y0 = t.clientY; TOUCH.t0 = performance.now();
+  TOUCH.moved = false; TOUCH.active = true; TOUCH.dx = TOUCH.dy = 0;
+  removeJoy();
+  joyEl = document.createElement('div');
+  joyEl.className = 'joy-base';
+  joyEl.style.left = t.clientX + 'px';
+  joyEl.style.top = t.clientY + 'px';
+  const knob = document.createElement('div');
+  knob.className = 'joy-knob';
+  joyEl.appendChild(knob);
+  document.body.appendChild(joyEl);
+  if(studentPos.x != null && !feetWalkable(studentPos.x, studentPos.y)){
+    const sp = snapWalkable(studentPos.x, studentPos.y);
+    placeStudent(sp[0], sp[1]);
+  }
+  ensureDriveLoop();
+}
+function onMapTouchMove(e){
+  if(TOUCH.id == null) return;
+  let t = null;
+  for(const touch of e.changedTouches){ if(touch.identifier === TOUCH.id){ t = touch; break; } }
+  if(!t) return;
+  const rawDx = t.clientX - TOUCH.x0, rawDy = t.clientY - TOUCH.y0;
+  if(Math.hypot(rawDx, rawDy) > 12) TOUCH.moved = true;
+  if(!TOUCH.active) return;
+  e.preventDefault();
+  const maxR = 40;
+  let dx = rawDx, dy = rawDy;
+  const mag = Math.hypot(dx, dy);
+  if(mag > maxR){ dx = dx / mag * maxR; dy = dy / mag * maxR; }
+  TOUCH.dx = dx / maxR;
+  TOUCH.dy = dy / maxR;
+  if(joyEl){
+    const knob = joyEl.querySelector('.joy-knob');
+    if(knob){ knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; }
+  }
+  ensureDriveLoop();
+}
+function onMapTouchEnd(e){
+  if(TOUCH.id == null) return;
+  let t = null;
+  for(const touch of e.changedTouches){ if(touch.identifier === TOUCH.id){ t = touch; break; } }
+  if(!t) return;
+  const dt = performance.now() - TOUCH.t0;
+  const dist = Math.hypot(t.clientX - TOUCH.x0, t.clientY - TOUCH.y0);
+  const wasJoy = TOUCH.active;
+  TOUCH.active = false; TOUCH.dx = TOUCH.dy = 0; TOUCH.id = null;
+  removeJoy();
+  if(!TOUCH.moved && dt < 200 && dist < 12){
+    suppressMapClick = performance.now() + 400;
+    if(e.target.closest && e.target.closest('.node')) return;
+    const [x, y] = canvasXYFromClient(t.clientX, t.clientY);
+    walkTo(x, y);
+  } else if(wasJoy){
+    suppressMapClick = performance.now() + 400;
+  }
+}
+
+const mapScrollEl = $('#mapScroll');
+mapScrollEl.addEventListener('touchstart', onMapTouchStart, { passive:false });
+mapScrollEl.addEventListener('touchmove', onMapTouchMove, { passive:false });
+mapScrollEl.addEventListener('touchend', onMapTouchEnd, { passive:false });
+mapScrollEl.addEventListener('touchcancel', onMapTouchEnd, { passive:false });
+
+setSoundOn(soundOn());
+$('#muteBtn').addEventListener('click', () => setSoundOn(!soundOn()));
 
 /* ---------- zoom ---------- */
 const ZOOMS = [1, 1.3, 1.7, 2.2];
@@ -1787,6 +2081,7 @@ function showResult(p, hits){
 /* fecha o resultado, atualiza mapa e solta partículas no nó */
 function finishPhase(phaseId){
   closeModal();
+  const earned = starsOf(phaseId);
   renderAll();
 
   const nodeBtn = document.querySelector(`[data-phase="${phaseId}"]`);
@@ -1794,7 +2089,11 @@ function finishPhase(phaseId){
     const canvas = $('#mapCanvas');
     const n = nodeBtn.getBoundingClientRect();
     const c = canvas.getBoundingClientRect();
-    burst(n.left - c.left + n.width / 2, n.top - c.top + n.height / 2);
+    const z = ZOOMS[zoomIdx];
+    const x = (n.left - c.left + n.width / 2) / z;
+    const y = (n.top - c.top + n.height / 2) / z;
+    burst(x, y);
+    if(earned >= 2) confettiAt(x, y);
     nodeBtn.scrollIntoView({ block:'center', behavior:'smooth' });
   }
 }
@@ -1814,6 +2113,22 @@ function burst(x, y){
     el.style.setProperty('--dy', Math.sin(ang) * dist + 'px');
     canvas.appendChild(el);
     setTimeout(() => el.remove(), 900);
+  }
+}
+
+function confettiAt(x, y){
+  const canvas = $('#mapCanvas');
+  if(!canvas) return;
+  const colors = ['#ffc94d','#3ecf94','#ff6b5e','#7ec8ff','#f7ead1','#e879f9'];
+  for(let i = 0; i < 12; i++){
+    const el = document.createElement('div');
+    el.className = 'fx fx-confetti';
+    el.style.left = (x + (Math.random() * 40 - 20)) + 'px';
+    el.style.top = (y + (Math.random() * 10 - 20)) + 'px';
+    el.style.background = colors[i % colors.length];
+    el.style.animationDelay = (i * 0.03) + 's';
+    el.addEventListener('animationend', () => el.remove());
+    canvas.appendChild(el);
   }
 }
 
