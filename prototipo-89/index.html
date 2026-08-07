@@ -1033,9 +1033,12 @@ function renderLegend(){
     return `<button class="tab legend-chip" data-sub="${s.id}" style="--acc:${s.accent}">
       <span class="legend-dot"></span>${s.name} <span class="mini-stars">${st.done}/12</span>
     </button>`;
-  }).join('');
-  document.querySelectorAll('.legend-chip').forEach(b =>
-    b.addEventListener('click', () => scrollToSubject(b.dataset.sub)));
+  }).join('') + `<a class="tab legend-chip" href="fps.html" style="--acc:#c084fc;text-decoration:none">
+      <span class="legend-dot"></span>🎮 1ª pessoa
+    </a>`;
+  document.querySelectorAll('.legend-chip').forEach(b => {
+    if(b.dataset.sub) b.addEventListener('click', () => scrollToSubject(b.dataset.sub));
+  });
 }
 
 function renderHeader(){
