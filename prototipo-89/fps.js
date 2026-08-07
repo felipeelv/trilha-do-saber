@@ -4,6 +4,13 @@
    ================================================================ */
 'use strict';
 
+/* Three.js não carregou (sem internet)? avisa em vez de tela preta */
+if(!window.THREE){
+  document.getElementById('overlay').innerHTML =
+    '<div class="card"><h1>Sem conexão</h1><p>O modo 3D precisa de internet para carregar a biblioteca Three.js (unpkg.com). Conecte-se e recarregue — ou jogue online: felipeelv.github.io/trilha-do-saber</p></div>';
+  throw new Error('THREE não carregado');
+}
+
 /* ---------- mundo: mapeamento das coordenadas do mapa 2D ---------- */
 const WORLD_W = 200;                       // unidades 3D na largura do mapa
 const WORLD_H = WORLD_W * 1.792;           // mesma proporção da cidade.png
@@ -30,7 +37,8 @@ sun.position.set(60, 120, 40);
 scene.add(sun);
 
 /* ---------- chão com a textura da cidade ---------- */
-const tex = new THREE.TextureLoader().load('assets/cidade.png');
+/* data URL embutida: funciona tanto via file:// quanto online */
+const tex = new THREE.TextureLoader().load(window.CIDADE_DATA_URL || 'assets/cidade.png');
 tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
 tex.colorSpace = THREE.SRGBColorSpace || undefined;
 const ground = new THREE.Mesh(

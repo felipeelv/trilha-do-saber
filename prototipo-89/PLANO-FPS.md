@@ -33,10 +33,12 @@ Stack: Three.js via CDN (r149, UMD), sem build. Reaproveita: `assets/cidade.png`
 **Critério de pronto**: concluir uma missão em 1ª pessoa e vê-la marcada no mapa 2D. ✅ (lógica de desbloqueio/save testada via node)
 
 ## Fase 4 — Polimento e integração
-- [ ] HUD mínimo: distrito atual + dica de controles + botão "voltar ao mapa"
-- [ ] Ajustes de céu/névoa/luz e desempenho
-- [ ] Validação final (sintaxe, testes) + abrir para o professor testar
-- [ ] Atualizar PLANO.md e publicar (git commit/push)
+- [x] HUD mínimo: distrito atual + dica de controles + botão "voltar ao mapa"
+- [x] Ajustes de céu/névoa/luz e desempenho
+- [x] Validação final (sintaxe, testes) + abrir para o professor testar
+- [x] Atualizar PLANO.md e publicar (git commit/push)
+
+**Critério de pronto**: modo 1ª pessoa jogável e publicado em https://felipeelv.github.io/trilha-do-saber/prototipo-89/fps.html ✅
 
 ---
 
@@ -45,3 +47,6 @@ Stack: Three.js via CDN (r149, UMD), sem build. Reaproveita: `assets/cidade.png`
 - **Fase 1 concluída**: `fps.html` + `fps.js` — cena, chão com textura da cidade, mar, céu, névoa, pointer lock, WASD/setas/Shift, botão "🎮 1ª pessoa" no mapa 2D
 - **Fase 2 concluída**: `assets/predios.js` (724 blocos extrudados com cor do telhado, altura por distrito) + colisão AABB com deslize
 - **Fase 3 concluída**: marcadores 3D flutuantes (✓ concluída / cor disciplina / ★ elite / cinza bloqueada), feixe dourado na missão atual, prompt "Pressione E", quiz overlay com as mesmas 240 questões, XP/estrelas/multiplicador salvos na mesma chave do 2D
+- **Fase 4 concluída**: HUD com o distrito atual conforme a posição, botão "← MAPA", validação final e publicação no GitHub Pages
+
+**PROJETO FPS CONCLUÍDO** 🏁 — as 4 fases entregues e no ar.
