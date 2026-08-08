@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GTA — Grande Trilha do Aprendizado · 8º/9º ano</title>
+<title>Cidade do Saber · 8º/9º ano</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -37,6 +37,7 @@
 
   *{margin:0;padding:0;box-sizing:border-box}
 
+  html{color-scheme:dark}
   html,body{height:100%}
 
   body{
@@ -79,6 +80,9 @@
   .topbar{
     position:relative;z-index:5;
     height:66px;padding:0 22px;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-left:max(22px, env(safe-area-inset-left,0px));
+    padding-right:max(22px, env(safe-area-inset-right,0px));
     display:flex;align-items:center;justify-content:space-between;gap:18px;
     background:rgba(6,28,38,.82);
     backdrop-filter:blur(8px);
@@ -151,7 +155,7 @@
     padding:8px 18px;border-radius:99px;
     border:1px solid var(--card-line);
     background:rgba(247,234,209,.04);
-    transition:all .22s ease;
+    transition:color .22s ease, background .22s ease, transform .22s ease, border-color .22s ease, box-shadow .22s ease;
     display:flex;align-items:center;gap:8px;
   }
   .tab:hover{color:var(--cream);transform:translateY(-1px);background:rgba(247,234,209,.09)}
@@ -310,17 +314,21 @@
   .node .stars .off{opacity:.22}
   .node .label{
     position:absolute;top:calc(100% + 20px);left:50%;transform:translateX(-50%);
-    width:150px;text-align:center;
+    max-width:150px;width:max-content;min-width:72px;text-align:center;
     font-family:'Bebas Neue';font-weight:600;font-size:12.5px;line-height:1.2;
     color:var(--cream);text-shadow:0 2px 3px rgba(0,0,0,.6);
     pointer-events:none;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
+    opacity:0;transition:opacity .15s ease;
   }
   .node.locked .label{color:rgba(247,234,209,.42)}
+  .node.locked .medal{position:relative}
   .node .gate{
     position:absolute;top:calc(100% + 38px);left:50%;transform:translateX(-50%);
     background:rgba(6,28,38,.85);border:1px solid var(--gold);
     color:var(--gold);font-weight:800;font-size:11px;
     padding:2px 9px;border-radius:99px;white-space:nowrap;pointer-events:none;
+    max-width:180px;overflow:hidden;text-overflow:ellipsis;
   }
 
   /* baú do tesouro final */
@@ -495,7 +503,7 @@
     background:rgba(46,35,24,.1);
     display:flex;align-items:center;justify-content:center;
     font-family:'Bebas Neue';font-weight:800;font-size:15px;color:rgba(46,35,24,.35);
-    transition:all .25s ease;
+    transition:background .25s ease, color .25s ease, transform .25s ease, box-shadow .25s ease, border-color .25s ease;
   }
   .qdot.ok{background:var(--green);color:#063d27;transform:scale(1.08);box-shadow:0 3px 0 var(--green-2)}
   .qdot.miss{background:var(--coral);color:#5c130a;transform:scale(1.08)}
@@ -537,15 +545,15 @@
   .run-q.small{gap:8px;margin:4px 0 14px}
   .run-q.small .qdot{width:30px;height:30px;border-radius:9px;font-size:12px}
   .run-q.small .qdot.current{border:2px solid #b98a4e;color:var(--ink)}
-  .q-text{font-family:'Bebas Neue';font-weight:700;font-size:18.5px;line-height:1.35;margin-bottom:15px}
+  .q-text{font-family:'Barlow',sans-serif;font-weight:700;font-size:17px;line-height:1.45;margin-bottom:15px}
   .opts{display:flex;flex-direction:column;gap:9px;margin-bottom:13px}
   .opt{
     display:flex;align-items:center;gap:12px;text-align:left;
     background:rgba(255,255,255,.55);
     border:2px solid rgba(46,35,24,.18);
     border-radius:13px;padding:10px 13px;
-    font-size:14px;font-weight:700;color:var(--ink);line-height:1.35;
-    transition:all .15s ease;
+    font-family:'Barlow',sans-serif;font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.4;
+    transition:border-color .15s ease, background .15s ease, transform .15s ease, color .15s ease, opacity .15s ease;
   }
   .opt:hover:not(:disabled){border-color:#b98a4e;background:#fff;transform:translateY(-1px)}
   .opt:disabled{cursor:default}
@@ -654,9 +662,8 @@
   .levelup{color:#3a2a05}
   .result-title{color:var(--cream)}
   .result-sub{color:var(--cream-dim)}
-  /* cidade única: rótulos sob hover/disponível + legenda de distritos */
-  .node .label{opacity:0;transition:opacity .15s ease}
-  .node:hover .label,.node.available .label{opacity:1}
+  /* labels: sempre visíveis na missão atual e disponíveis; locked no tap */
+  .node:hover .label,.node.available .label,.node.current-mission .label,.node.show-label .label{opacity:1}
   .node .stars{pointer-events:none}
   .legend-chip{display:inline-flex}
   .legend-dot{width:10px;height:10px;border-radius:50%;background:var(--acc);flex:none;align-self:center}
@@ -760,7 +767,11 @@
     color:var(--acc);text-transform:uppercase;
   }
   .panel-toggle:hover{background:rgba(237,240,245,.12)}
-  .zoom-ctl{position:fixed;left:14px;bottom:14px;z-index:29;display:flex;flex-direction:column;gap:8px;align-items:center}
+  .zoom-ctl{
+    position:fixed;left:max(14px, env(safe-area-inset-left,0px));
+    bottom:max(14px, env(safe-area-inset-bottom,0px));
+    z-index:29;display:flex;flex-direction:column;gap:8px;align-items:center;
+  }
   .zoom-ctl button{
     width:42px;height:42px;border-radius:10px;background:var(--glass);
     border:1px solid var(--card-line);color:var(--cream);
@@ -768,11 +779,95 @@
   }
   .zoom-ctl button:hover{border-color:var(--acc);color:var(--acc)}
   .zoom-ctl .zlabel{font-size:13px;font-weight:800;color:var(--cream-dim)}
+  .zoom-ctl .locate-btn{font-size:18px}
   .drive-hint{
-    position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:29;
+    position:fixed;bottom:max(14px, env(safe-area-inset-bottom,0px));
+    left:50%;transform:translateX(-50%);z-index:29;
     background:var(--glass);border:1px solid var(--card-line);border-radius:99px;
     padding:6px 16px;font-size:12px;font-weight:700;color:var(--cream-dim);
-    pointer-events:none;
+    pointer-events:none;max-width:min(420px, calc(100vw - 120px));text-align:center;
+  }
+  .drive-hint.hidden{display:none}
+  /* card flutuante de objetivo */
+  .objective-card{
+    position:fixed;top:calc(66px + env(safe-area-inset-top,0px) + 52px);
+    left:50%;transform:translateX(-50%);z-index:28;
+    width:min(360px, calc(100vw - 28px));
+    display:flex;align-items:center;gap:12px;
+    background:rgba(9,12,18,.92);border:1px solid rgba(255,201,77,.45);
+    border-radius:14px;padding:10px 12px 10px 14px;
+    box-shadow:0 10px 28px rgba(0,0,0,.45);backdrop-filter:blur(8px);
+  }
+  .objective-card .obj-main{flex:1;min-width:0}
+  .objective-card .obj-kicker{
+    font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:2px;
+  }
+  .objective-card .obj-title{
+    font-family:'Bebas Neue',sans-serif;font-size:16px;line-height:1.15;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .objective-card .obj-stars{font-size:13px;color:var(--gold);letter-spacing:.04em;margin-top:2px}
+  .objective-card .obj-go{
+    flex:none;min-width:56px;padding:9px 14px;border-radius:11px;
+    font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.04em;
+    color:#3a2a05;background:linear-gradient(180deg,var(--gold),var(--gold-2));
+    box-shadow:0 3px 0 var(--gold-deep);
+  }
+  .objective-card .obj-go:active{transform:translateY(1px);box-shadow:0 1px 0 var(--gold-deep)}
+  .objective-card.done{border-color:rgba(110,232,110,.4)}
+  .objective-card.done .obj-kicker{color:var(--acc)}
+  /* tutorial de 1ª visita */
+  .onboard-overlay{
+    position:fixed;inset:0;z-index:60;
+    background:rgba(4,8,14,.78);backdrop-filter:blur(4px);
+    display:flex;align-items:flex-end;justify-content:center;
+    padding:max(20px, env(safe-area-inset-bottom,0px)) 16px 24px;
+  }
+  .onboard-overlay[hidden]{display:none !important}
+  .onboard-card{
+    width:min(420px,100%);background:linear-gradient(170deg,#1a212e,#11151e);
+    border:2px solid var(--gold);border-radius:18px;padding:22px 22px 18px;
+    box-shadow:0 20px 50px rgba(0,0,0,.55);color:var(--cream);
+  }
+  .onboard-step{
+    font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:8px;
+  }
+  .onboard-card h2{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1.1;margin-bottom:8px}
+  .onboard-card p{font-size:14.5px;font-weight:600;color:var(--cream-dim);line-height:1.45;margin-bottom:18px}
+  .onboard-actions{display:flex;gap:10px}
+  .onboard-actions .btn-gold{flex:1;margin:0}
+  .onboard-actions .btn-ghost{flex:none;width:auto;margin:0;min-width:90px}
+  .panel-toggle{
+    right:env(safe-area-inset-right,0px);
+  }
+  .m-stars-rule{
+    font-size:12.5px;font-weight:700;color:var(--cream-dim);
+    background:rgba(237,240,245,.05);border:1px solid rgba(237,240,245,.12);
+    border-radius:10px;padding:9px 12px;margin:0 0 12px;line-height:1.4;
+  }
+  .m-how{
+    margin:0 0 14px;border:1px solid rgba(237,240,245,.12);border-radius:12px;
+    background:rgba(237,240,245,.04);overflow:hidden;
+  }
+  .m-how summary{
+    cursor:pointer;list-style:none;padding:10px 14px;
+    font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.06em;
+    color:var(--cream-dim);
+  }
+  .m-how summary::-webkit-details-marker{display:none}
+  .m-how[open] summary{color:var(--gold);border-bottom:1px solid rgba(237,240,245,.1)}
+  .m-how .tier{padding:9px 14px}
+  .m-how .tier:last-of-type{padding-bottom:12px}
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms !important;animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;scroll-behavior:auto !important;
+    }
+    .xp-fill::after,.node.available .medal::before,.objective-arrow.pulse-ring::after{display:none !important}
+    .student.walking img,.compass,.objective-arrow,.hint,.boat,.cloud,.mult-chip.max,
+    .node.boss.available .medal{animation:none !important}
   }
   /* ===== blips de missão sobre os prédios (sem "bolas") ===== */
   .node:not(.boss) .medal{
@@ -796,7 +891,7 @@
         <circle cx="12" cy="12" r="1.3" fill="#f7ead1"/>
       </svg>
       <div>
-        <h1>Grande Trilha do Aprendizado</h1>
+        <h1>Cidade do Saber</h1>
         <small>GTA · 8º e 9º ano · protótipo</small>
       </div>
     </div>
@@ -854,17 +949,26 @@
           </div>
         </div>
       </div>
-      <button class="panel-toggle" id="panelToggle">◀ Painel</button>
-      <div class="drive-hint">⌨️ setas / WASD · Shift corre · 👆 toque no mapa</div>
+      <button class="panel-toggle" id="panelToggle" type="button" aria-expanded="false" aria-controls="sidePanel">◀ Painel</button>
+      <div class="drive-hint" id="driveHint">⌨️ setas / WASD · Shift corre · 👆 toque no mapa</div>
+      <div class="objective-card" id="objectiveCard" hidden>
+        <div class="obj-main">
+          <div class="obj-kicker" id="objKicker">Próxima missão</div>
+          <div class="obj-title" id="objTitle">—</div>
+          <div class="obj-stars" id="objStars"></div>
+        </div>
+        <button type="button" class="obj-go" id="objGo">Ir</button>
+      </div>
       <div class="zoom-ctl">
-        <button id="zoomIn" aria-label="Mais zoom">+</button>
+        <button type="button" id="zoomIn" aria-label="Mais zoom">+</button>
         <span class="zlabel" id="zoomLabel">1×</span>
-        <button id="zoomOut" aria-label="Menos zoom">−</button>
+        <button type="button" id="zoomOut" aria-label="Menos zoom">−</button>
+        <button type="button" class="locate-btn" id="locateBtn" aria-label="Centralizar no personagem" title="Onde estou?">◎</button>
       </div>
     </section>
 
     <!-- ============ PAINEL LATERAL ============ -->
-    <aside class="side">
+    <aside class="side" id="sidePanel">
       <div class="card">
         <h3>🎖️ Seu respeito</h3>
         <div class="jrow"><span>Missões concluídas</span><strong id="stPhases">0 / 12</strong></div>
@@ -898,9 +1002,22 @@
 
   <!-- ============ MODAL ============ -->
   <div class="modal-overlay" id="modalOverlay">
-    <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" id="modalDialog">
       <button class="modal-close" id="modalClose" aria-label="Fechar">✕</button>
       <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- ============ ONBOARDING ============ -->
+  <div class="onboard-overlay" id="onboardOverlay" hidden>
+    <div class="onboard-card" role="dialog" aria-modal="true" aria-labelledby="onboardTitle">
+      <div class="onboard-step" id="onboardStep">Passo 1 de 3</div>
+      <h2 id="onboardTitle">Ande até a seta amarela</h2>
+      <p id="onboardText">Use as setas, WASD ou toque no mapa para mover o personagem até a missão marcada.</p>
+      <div class="onboard-actions">
+        <button type="button" class="btn-gold" id="onboardNext">Próximo</button>
+        <button type="button" class="btn-ghost" id="onboardSkip">Pular</button>
+      </div>
     </div>
   </div>
 
@@ -1015,14 +1132,24 @@ function buildPhases(subject){
 
 /* ---------- estado (persiste no navegador) ---------- */
 const SAVE_KEY = 'gtaTrilha89V1';
+const ONBOARD_KEY = 'gtaTrilha89OnboardV1';
+const HINT_KEY = 'gtaTrilha89HintV1';
 const freshState = () => ({ xp:0, coins:0, weeklyXP:60, streak:6, mult:1, completed:{} });
 let state = load();
+let modalOpener = null;
+let modalFocusTrapBound = null;
+let idleHintTimer = null;
+let sessionHadMove = false;
 
 function load(){
   try{ const s = JSON.parse(localStorage.getItem(SAVE_KEY)); return s && typeof s==='object' ? Object.assign(freshState(), s) : freshState(); }
   catch(e){ return freshState(); }
 }
 function save(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+
+function starsText(st, max=3){
+  return Array.from({length:max}, (_,i) => i < st ? '★' : '☆').join('');
+}
 
 function starsOf(phaseId){ return (state.completed[phaseId] || 0); }
 
@@ -1233,8 +1360,10 @@ function renderMap(){
         `<span style="color:#ffc94d" class="${k<=st?'':'off'}">${ICONS.star(k<=st?'':'off')}</span>`).join('')}</span>` : '';
       const gate = (isBoss && !info.ok && info.reason === 'stars')
         ? `<span class="gate">★ ${info.have}/${info.need} no distrito</span>` : '';
+      const prevTitle = (!info.ok && info.reason === 'prev' && info.prev) ? info.prev.title : '';
       return `<button class="node ${cls} ${isBoss?'boss':''}" style="left:${pos.x}px;top:${pos.y}px;--acc:${s.accent}"
-          data-phase="${p.id}" data-x="${pos.x}" data-y="${pos.y}" aria-label="${p.title}">
+          data-phase="${p.id}" data-x="${pos.x}" data-y="${pos.y}" data-locked="${info.ok ? '0' : '1'}"
+          data-prev="${prevTitle.replace(/"/g,'&quot;')}" aria-label="${p.title}">
         <span class="medal">${inner}</span>
         ${starsHtml}
         <span class="label">${p.title}</span>
@@ -1262,6 +1391,8 @@ function renderMap(){
     objectivePos.y = pos.y - (nm.phase.type === 'boss' ? 70 : 50);
     objectivePinged = false;
     $('#districtBar').textContent = `${nm.phase.unit} · ${nm.subject.name}`;
+    const curNode = document.querySelector(`.node[data-phase="${nm.phase.id}"]`);
+    if(curNode) curNode.classList.add('current-mission');
     if(studentPos.x == null){
       const sp = snapWalkable(pos.x, pos.y + 40);
       placeStudent(sp[0], sp[1]);
@@ -1281,9 +1412,30 @@ function renderMap(){
   }
 
   document.querySelectorAll('.node').forEach(b =>
-    b.addEventListener('click', () => openPhase(b.dataset.phase)));
+    b.addEventListener('click', e => {
+      if(b.dataset.locked === '1'){
+        /* locked: 1º toque mostra label/dica; 2º abre modal */
+        if(!b.classList.contains('show-label')){
+          document.querySelectorAll('.node.show-label').forEach(n => n.classList.remove('show-label'));
+          b.classList.add('show-label');
+          if(b.dataset.prev){
+            let tip = b.querySelector('.gate');
+            if(!tip){
+              tip = document.createElement('span');
+              tip.className = 'gate';
+              b.appendChild(tip);
+            }
+            tip.textContent = `Conclua ${b.dataset.prev}`;
+          }
+          e.stopPropagation();
+          return;
+        }
+      }
+      openPhase(b.dataset.phase, b);
+    }));
 
   applyZoom();
+  updateObjectiveCard();
 }
 
 /* ---------- aluno andando pelas ruas ---------- */
@@ -1336,6 +1488,7 @@ function walkTo(tx, ty){
   tx = snapped[0]; ty = snapped[1];
   if(studentPos.x == null){ placeStudent(tx, ty); return; }
   if(Math.hypot(tx - studentPos.x, ty - studentPos.y) < 6) return;
+  noteMovement();
 
   const ini = maskCell(studentPos.x, studentPos.y);
   const fim = maskCell(tx, ty);
@@ -1590,10 +1743,49 @@ function ensureDriveLoop(){
   if(!driveRaf){ driveStep.last = null; driveRaf = requestAnimationFrame(driveStep); }
 }
 
+function isTypingTarget(el){
+  if(!el || el === document.body) return false;
+  const tag = (el.tagName || '').toLowerCase();
+  return tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable;
+}
+
+function noteMovement(){
+  if(sessionHadMove) return;
+  sessionHadMove = true;
+  hideDriveHint(true);
+  if(idleHintTimer){ clearTimeout(idleHintTimer); idleHintTimer = null; }
+}
+
+function hideDriveHint(persist){
+  const hint = $('#driveHint');
+  if(hint) hint.classList.add('hidden');
+  if(persist) localStorage.setItem(HINT_KEY, '1');
+}
+
 window.addEventListener('keydown', e => {
+  if(isTypingTarget(e.target)) return;
   const k = e.key.toLowerCase();
+
+  /* atalhos do quiz (A–D / 1–4 / Enter / Espaço) */
+  if(quiz && $('#modalOverlay').classList.contains('open')){
+    if(!quiz.answered){
+      const map = {a:0,b:1,c:2,d:3,'1':0,'2':1,'3':2,'4':3};
+      if(k in map){ e.preventDefault(); answerQuestion(map[k]); return; }
+    } else {
+      const next = $('#nextQ');
+      if(next && !next.hidden && (e.key === 'Enter' || e.key === ' ')){
+        e.preventDefault();
+        next.click();
+        return;
+      }
+    }
+  }
+
   if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(k)){
+    if($('#modalOverlay').classList.contains('open')) return;
+    if($('#onboardOverlay') && !$('#onboardOverlay').hidden) return;
     e.preventDefault();
+    noteMovement();
     if(walkRaf){ cancelAnimationFrame(walkRaf); walkRaf = null; }
     KEYS[k] = true;
     if(studentPos.x != null && !feetWalkable(studentPos.x, studentPos.y)){
@@ -1716,12 +1908,15 @@ function applyZoom(){
   sc.scrollLeft = Math.max(0, (sc.scrollWidth - sc.clientWidth) / 2);
 }
 
-$('#zoomIn').addEventListener('click', () => { if(zoomIdx < ZOOMS.length - 1){ zoomIdx++; applyZoom(); } });
-$('#zoomOut').addEventListener('click', () => { if(zoomIdx > 0){ zoomIdx--; applyZoom(); } });
+$('#zoomIn').addEventListener('click', () => { if(zoomIdx < ZOOMS.length - 1){ zoomIdx++; applyZoom(); centerOnStudent(false); } });
+$('#zoomOut').addEventListener('click', () => { if(zoomIdx > 0){ zoomIdx--; applyZoom(); centerOnStudent(false); } });
+$('#locateBtn').addEventListener('click', () => centerOnStudent(true));
 $('#panelToggle').addEventListener('click', () => {
-  const s = $('.side');
+  const s = $('#sidePanel') || $('.side');
   s.classList.toggle('open');
-  $('#panelToggle').textContent = s.classList.contains('open') ? 'Painel ▶' : '◀ Painel';
+  const open = s.classList.contains('open');
+  $('#panelToggle').textContent = open ? 'Painel ▶' : '◀ Painel';
+  $('#panelToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
 });
 
 /* ---------- sidebar ---------- */
@@ -1796,6 +1991,36 @@ function renderAll(){
   renderHeader();
   renderMap();
   renderSidebar();
+  updateObjectiveCard();
+}
+
+function updateObjectiveCard(){
+  const card = $('#objectiveCard');
+  if(!card) return;
+  const nm = nextMission();
+  card.hidden = false;
+  card.classList.toggle('done', !nm);
+  if(nm){
+    const st = starsOf(nm.phase.id);
+    const eliteBlocked = unlockInfo(nm.phase, buildPhases(nm.subject)).reason === 'stars';
+    $('#objKicker').textContent = eliteBlocked
+      ? 'Abra a elite'
+      : (nm.phase.type === 'boss' ? 'Missão de Elite' : 'Próxima missão');
+    $('#objTitle').textContent = nm.phase.title;
+    $('#objStars').textContent = nm.phase.type === 'boss' ? '👑 Elite' : starsText(st);
+    $('#objGo').textContent = 'Ir';
+    $('#objGo').onclick = () => {
+      scrollToMission();
+      centerOnStudent(true);
+      setTimeout(() => openPhase(nm.phase.id), 280);
+    };
+  } else {
+    $('#objKicker').textContent = 'Distrito concluído';
+    $('#objTitle').textContent = 'Cidade dominada! 🏆';
+    $('#objStars').textContent = 'Todas as missões concluídas';
+    $('#objGo').textContent = 'Mapa';
+    $('#objGo').onclick = () => { $('#mapScroll').scrollTop = 0; };
+  }
 }
 
 function scrollToMission(){
@@ -1807,6 +2032,7 @@ function scrollToMission(){
   const sc = $('#mapScroll');
   sc.style.scrollBehavior = 'smooth';
   sc.scrollTop = Math.max(0, per[nm.subject.id][nm.phase.idx].y * z - 320);
+  sc.scrollLeft = Math.max(0, per[nm.subject.id][nm.phase.idx].x * z - sc.clientWidth / 2);
 }
 
 function scrollToSubject(subId){
@@ -1820,24 +2046,87 @@ function scrollToSubject(subId){
   sc.scrollTop = Math.max(0, midY * z - 320);
 }
 
+function centerOnStudent(smooth){
+  if(studentPos.x == null) return;
+  const sc = $('#mapScroll'), z = ZOOMS[zoomIdx];
+  sc.style.scrollBehavior = smooth ? 'smooth' : 'auto';
+  sc.scrollLeft = Math.max(0, studentPos.x * z - sc.clientWidth / 2);
+  sc.scrollTop = Math.max(0, studentPos.y * z - sc.clientHeight / 2);
+}
+
 /* ================================================================
    MODAL — detalhe da fase, simulação e resultado
    ================================================================ */
 let modalPhase = null;
+let quiz = null;
 
-function openModal(){ $('#modalOverlay').classList.add('open'); }
-function closeModal(){ $('#modalOverlay').classList.remove('open'); modalPhase = null; }
+function getModalFocusables(){
+  const root = $('#modalDialog');
+  if(!root) return [];
+  return [...root.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+    .filter(el => !el.disabled && el.offsetParent !== null);
+}
 
-$('#modalClose').addEventListener('click', closeModal);
-$('#modalOverlay').addEventListener('click', e => { if(e.target.id === 'modalOverlay') closeModal(); });
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+function trapModalFocus(e){
+  if(e.key !== 'Tab' || !$('#modalOverlay').classList.contains('open')) return;
+  const list = getModalFocusables();
+  if(!list.length) return;
+  const first = list[0], last = list[list.length - 1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+}
+
+function openModal(){
+  $('#modalOverlay').classList.add('open');
+  if(!modalFocusTrapBound){
+    modalFocusTrapBound = trapModalFocus;
+    document.addEventListener('keydown', modalFocusTrapBound);
+  }
+  requestAnimationFrame(() => {
+    const primary = $('#startPhase') || $('#nextQ') || $('.modal .btn-gold') || $('#modalClose');
+    if(primary) primary.focus();
+  });
+}
+
+function forceCloseModal(){
+  $('#modalOverlay').classList.remove('open');
+  modalPhase = null;
+  quiz = null;
+  if(modalFocusTrapBound){
+    document.removeEventListener('keydown', modalFocusTrapBound);
+    modalFocusTrapBound = null;
+  }
+  if(modalOpener && typeof modalOpener.focus === 'function'){
+    try{ modalOpener.focus(); }catch(_){}
+  }
+  modalOpener = null;
+}
+
+function requestCloseModal(){
+  if(quiz !== null){
+    const ok = confirm('Sair da missão? O progresso desta tentativa será perdido.');
+    if(!ok) return;
+  }
+  forceCloseModal();
+}
+
+function closeModal(){ requestCloseModal(); }
+
+$('#modalClose').addEventListener('click', requestCloseModal);
+$('#modalOverlay').addEventListener('click', e => { if(e.target.id === 'modalOverlay') requestCloseModal(); });
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && $('#modalOverlay').classList.contains('open')){
+    e.preventDefault();
+    requestCloseModal();
+  }
+});
 
 function starsRowHtml(st, size){
   return [1,2,3].map(k =>
     `<span style="color:#d99a17" class="${k<=st?'':'off'}">${ICONS.star(k<=st?'':'off')}</span>`).join('');
 }
 
-function openPhase(phaseId){
+function openPhase(phaseId, openerEl){
   const subject = SUBJECTS.find(s => s.id === phaseId.split('-')[0]);
   const phases = buildPhases(subject);
   const p = phases.find(x => x.id === phaseId);
@@ -1845,6 +2134,7 @@ function openPhase(phaseId){
   const info = unlockInfo(p, phases);
   const isBoss = p.type === 'boss';
   modalPhase = p;
+  modalOpener = openerEl || document.querySelector(`.node[data-phase="${phaseId}"]`) || document.activeElement;
 
   const tiers = TIERS.map(t => `
     <div class="tier ${t.cls}">
@@ -1853,34 +2143,35 @@ function openPhase(phaseId){
     </div>`).join('');
 
   let body = `
-    <span class="m-unit">${p.unit}${isBoss ? ' · Missão de Elite' : ' · Missão ' + (p.idx + 1)}</span>
+    <span class="m-unit" id="modalTitle">${p.unit}${isBoss ? ' · Missão de Elite' : ' · Missão ' + (p.idx + 1)}</span>
     <h3 class="m-title">${p.title}</h3>
-    <p class="m-desc">${isBoss
-      ? 'A missão mais pesada do distrito: mistura tudo o que você aprendeu nas três missões anteriores. Vale muito mais XP — e vencê-la libera a próxima área da cidade.'
-      : 'Missão em três degraus de dificuldade. O desempenho define suas estrelas: 60% acerta 1★, 80% vale 2★ e 90%+ vale 3★.'}</p>
   `;
 
   if(st > 0){
-    body += `<div class="m-best">Melhor resultado: <span class="stars">${starsRowHtml(st)}</span>
-      ${st < 3 ? '· refaça para tentar 3★' : '· resultado máximo!'}</div>`;
+    body += `<div class="m-best">Melhor: <span class="stars">${starsRowHtml(st)}</span>
+      ${st < 3 ? '· refaça para 3★' : '· máximo!'}</div>`;
   }
 
   if(!info.ok){
     body += info.reason === 'prev'
-      ? `<div class="m-locked-box">🔒 Esta missão ainda está bloqueada.<br>Conclua a missão anterior — <strong>${info.prev.title}</strong> — para abrir o caminho.</div>`
-      : `<div class="m-locked-box">🔒 A Missão de Elite só abre para quem domina o distrito.<br>Você tem <strong>★ ${info.have}/${info.need}</strong> nas missões deste distrito. Refaça missões para melhorar suas estrelas!</div>`;
-    body += `<div class="m-cta" style="margin-top:16px"><button class="btn-ghost" onclick="closeModal()">Voltar ao mapa</button></div>`;
+      ? `<div class="m-locked-box">🔒 Bloqueada.<br>Conclua <strong>${info.prev.title}</strong> para abrir o caminho.</div>`
+      : `<div class="m-locked-box">🔒 Elite bloqueada.<br>Você tem <strong>★ ${info.have}/${info.need}</strong> no distrito. Melhore suas estrelas!</div>`;
+    body += `<div class="m-cta" style="margin-top:16px"><button class="btn-ghost" type="button" id="modalBackBtn">Voltar ao mapa</button></div>`;
   } else {
     body += `
-      ${tiers}
+      <p class="m-stars-rule">60% = 1★ · 80% = 2★ · 90%+ = 3★</p>
       <div class="m-rewards">
         <div class="rew">⚡ até ${p.rew.xp * 3} XP</div>
         <div class="rew">🪙 até ${p.rew.coins * 3} moedas</div>
         <div class="rew">★ até 3 estrelas</div>
       </div>
+      <details class="m-how">
+        <summary>Como funciona</summary>
+        ${tiers}
+        ${isBoss ? '<p class="m-note" style="margin:0 12px 12px">Mistura o que você aprendeu nas três missões do distrito e libera a próxima área.</p>' : ''}
+      </details>
       <div class="m-cta">
-        <button class="btn-gold" id="startPhase">${st > 0 ? 'Refazer missão' : (isBoss ? 'Encarar a elite!' : 'Iniciar missão')}</button>
-        <p class="m-note">feedback imediato a cada questão · suas estrelas dependem do desempenho</p>
+        <button class="btn-gold" id="startPhase" type="button">${st > 0 ? 'Refazer' : (isBoss ? 'Encarar a elite!' : 'Iniciar')}</button>
       </div>`;
   }
 
@@ -1889,6 +2180,8 @@ function openPhase(phaseId){
 
   const btn = $('#startPhase');
   if(btn) btn.addEventListener('click', () => runPhase(p));
+  const back = $('#modalBackBtn');
+  if(back) back.addEventListener('click', requestCloseModal);
 }
 
 /* executa a fase: usa o banco de questões real; cai na simulação se a fase não tiver questões */
@@ -1899,7 +2192,6 @@ function runPhase(p){
 }
 
 /* ---------- quiz real ---------- */
-let quiz = null;
 const TIER_BY_KEY = {
   fix:{cls:'t1', name:'Fixação'},
   apl:{cls:'t2', name:'Aplicação'},
@@ -1918,30 +2210,31 @@ function renderQuestion(){
   const letters = ['A','B','C','D'];
 
   $('#modalBody').innerHTML = `
-    <span class="m-unit">${p.title}</span>
+    <span class="m-unit" id="modalTitle">${p.title}</span>
     <div class="quiz-head">
       <span class="tier-chip ${tier.cls}"><span class="dot"></span>${tier.name}</span>
       <span class="quiz-count">Questão ${i + 1} de ${qs.length}</span>
     </div>
-    <div class="run-q small">
+    <div class="run-q small" aria-hidden="true">
       ${qs.map((_, k) => {
         if(k > i) return `<div class="qdot">${k + 1}</div>`;
         if(k === i) return `<div class="qdot current">${k + 1}</div>`;
         return `<div class="qdot ${quiz.results[k] ? 'ok' : 'miss'}">${quiz.results[k] ? '✓' : '✕'}</div>`;
       }).join('')}
     </div>
-    <h3 class="q-text">${q.q}</h3>
+    <h3 class="q-text" id="qText">${q.q}</h3>
     <div class="opts">
       ${q.opts.map((op, k) => `
-        <button class="opt" data-k="${k}">
+        <button class="opt" type="button" data-k="${k}">
           <span class="opt-letter">${letters[k]}</span><span>${op}</span>
         </button>`).join('')}
     </div>
-    <div class="exp-box" id="expBox" hidden></div>
-    <button class="btn-gold" id="nextQ" hidden>${i < qs.length - 1 ? 'Próxima questão' : 'Ver resultado'}</button>`;
+    <div class="exp-box" id="expBox" hidden aria-live="polite"></div>
+    <button class="btn-gold" type="button" id="nextQ" hidden>${i < qs.length - 1 ? 'Próxima questão' : 'Ver resultado'}</button>`;
 
   document.querySelectorAll('.opt').forEach(b =>
     b.addEventListener('click', () => answerQuestion(+b.dataset.k)));
+  openModal();
 }
 
 function answerQuestion(k){
@@ -2080,7 +2373,7 @@ function showResult(p, hits){
 
 /* fecha o resultado, atualiza mapa e solta partículas no nó */
 function finishPhase(phaseId){
-  closeModal();
+  forceCloseModal();
   const earned = starsOf(phaseId);
   renderAll();
 
@@ -2132,6 +2425,62 @@ function confettiAt(x, y){
   }
 }
 
+/* ---------- onboarding 1ª visita ---------- */
+const ONBOARD_STEPS = [
+  { title:'Ande até a seta amarela', text:'Use as setas, WASD ou toque no mapa para mover o personagem até a missão marcada.' },
+  { title:'Toque no blip da missão', text:'Os prédios dourados são missões disponíveis. Toque no blip para abrir e iniciar.' },
+  { title:'Responda e ganhe estrelas', text:'Acerte as questões: 60% = 1★, 80% = 2★, 90%+ = 3★. Boa sorte na Cidade do Saber!' },
+];
+let onboardIdx = 0;
+
+function scheduleIdleHint(){
+  if(idleHintTimer) clearTimeout(idleHintTimer);
+  if(localStorage.getItem(HINT_KEY) === '1' || sessionHadMove) return;
+  idleHintTimer = setTimeout(() => {
+    if(!sessionHadMove && localStorage.getItem(HINT_KEY) !== '1'){
+      const hint = $('#driveHint');
+      if(hint) hint.classList.remove('hidden');
+      localStorage.setItem(HINT_KEY, '1'); /* reaparece no máx. 1× */
+    }
+  }, 20000);
+}
+
+function finishOnboarding(){
+  localStorage.setItem(ONBOARD_KEY, '1');
+  const ov = $('#onboardOverlay');
+  if(ov) ov.hidden = true;
+  hideDriveHint(false);
+  scheduleIdleHint();
+}
+
+function renderOnboardStep(){
+  const step = ONBOARD_STEPS[onboardIdx];
+  if(!step){ finishOnboarding(); return; }
+  $('#onboardStep').textContent = `Passo ${onboardIdx + 1} de ${ONBOARD_STEPS.length}`;
+  $('#onboardTitle').textContent = step.title;
+  $('#onboardText').textContent = step.text;
+  $('#onboardNext').textContent = onboardIdx >= ONBOARD_STEPS.length - 1 ? 'Começar' : 'Próximo';
+}
+
+function startOnboardingIfNeeded(){
+  if(localStorage.getItem(ONBOARD_KEY) === '1'){
+    if(localStorage.getItem(HINT_KEY) === '1') hideDriveHint(false);
+    return;
+  }
+  const ov = $('#onboardOverlay');
+  if(!ov) return;
+  ov.hidden = false;
+  onboardIdx = 0;
+  renderOnboardStep();
+}
+
+$('#onboardNext').addEventListener('click', () => {
+  onboardIdx++;
+  if(onboardIdx >= ONBOARD_STEPS.length) finishOnboarding();
+  else renderOnboardStep();
+});
+$('#onboardSkip').addEventListener('click', finishOnboarding);
+
 /* ---------- reset & init ---------- */
 $('#resetBtn').addEventListener('click', () => {
   if(confirm('Zerar todo o progresso do protótipo?')){
@@ -2148,8 +2497,17 @@ window.addEventListener('resize', () => {
   resizeT = setTimeout(renderMap, 180);
 });
 
+/* marcar movimento no loop de direção (touch + teclado) */
+const _driveStep = driveStep;
+driveStep = function(now){
+  if(KEYS.arrowup || KEYS.w || KEYS.arrowdown || KEYS.s || KEYS.arrowleft || KEYS.a || KEYS.arrowright || KEYS.d || TOUCH.active)
+    noteMovement();
+  return _driveStep(now);
+};
+
 renderAll();
 scrollToMission();
+startOnboardingIfNeeded();
 </script>
 </body>
 </html>
