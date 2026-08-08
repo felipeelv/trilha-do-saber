@@ -1027,8 +1027,8 @@
 <script src="questoes/por.js"></script>
 <script src="questoes/cie.js"></script>
 <script src="questoes/his.js"></script>
-<script src="assets/mascara.js"></script>
-<script src="js/rota.js"></script>
+<script src="assets/mascara.js?v=5"></script>
+<script src="js/rota.js?v=5"></script>
 <script>
 'use strict';
 
@@ -1397,7 +1397,11 @@ function renderMap(){
     const curNode = document.querySelector(`.node[data-phase="${nm.phase.id}"]`);
     if(curNode) curNode.classList.add('current-mission');
     if(studentPos.x == null){
-      const sp = snapWalkable(pos.x, pos.y + 40);
+      /* rua à frente do prédio da missão (não empurrar para fora do mapa) */
+      const sp = snapWalkable(pos.x, pos.y + 18);
+      placeStudent(sp[0], sp[1]);
+    } else if(!feetWalkable(studentPos.x, studentPos.y)){
+      const sp = snapWalkable(studentPos.x, studentPos.y);
       placeStudent(sp[0], sp[1]);
     } else {
       placeStudent(studentPos.x, studentPos.y);
@@ -1520,37 +1524,37 @@ function setDirSmooth(vx, vy, dt){
 }
 
 function walkTo(tx, ty){
+  if(!window.MASCARA){ placeStudent(tx, ty); return; }
   let snapped = snapWalkable(tx, ty);
-  /* aceita fallback de snap mesmo se o hitbox dos pés falhar na borda da rua */
-  if(!feetWalkable(snapped[0], snapped[1]) && !maskWalkable(snapped[0], snapped[1])) return;
+  if(!feetWalkable(snapped[0], snapped[1])) return;
   tx = snapped[0]; ty = snapped[1];
   if(studentPos.x == null){ placeStudent(tx, ty); return; }
+  /* se está preso fora da rua, puxa para a calçada antes de pathfind */
+  if(!feetWalkable(studentPos.x, studentPos.y)){
+    const sp = snapWalkable(studentPos.x, studentPos.y);
+    placeStudent(sp[0], sp[1]);
+  }
   if(Math.hypot(tx - studentPos.x, ty - studentPos.y) < 6) return;
   noteMovement();
 
   const ini = maskCell(studentPos.x, studentPos.y);
   const fim = maskCell(tx, ty);
-  if(window.MASCARA){
-    if(MASCARA.rows[ini[1]]?.[ini[0]] !== '1'){
-      const sp = snapWalkable(studentPos.x, studentPos.y);
-      placeStudent(sp[0], sp[1]);
-      const c2 = maskCell(sp[0], sp[1]);
-      ini[0] = c2[0]; ini[1] = c2[1];
-    }
-    if(MASCARA.rows[fim[1]]?.[fim[0]] !== '1'){
-      const c2 = maskCell(tx, ty);
-      fim[0] = c2[0]; fim[1] = c2[1];
-    }
+  if(MASCARA.rows[ini[1]]?.[ini[0]] !== '1'){
+    const sp = snapWalkable(studentPos.x, studentPos.y);
+    placeStudent(sp[0], sp[1]);
+    const c2 = maskCell(sp[0], sp[1]);
+    ini[0] = c2[0]; ini[1] = c2[1];
+  }
+  if(MASCARA.rows[fim[1]]?.[fim[0]] !== '1'){
+    const c2 = maskCell(tx, ty);
+    fim[0] = c2[0]; fim[1] = c2[1];
   }
 
-  let cells = window.ROTA && window.MASCARA ? ROTA.aStar(MASCARA, ini, fim) : null;
+  let cells = window.ROTA ? ROTA.aStar(MASCARA, ini, fim) : null;
   if(cells) cells = ROTA.simplificar(MASCARA, cells);
-  /* waypoints = centros das células da máscara (já são rua). Não filtrar por
-     feetWalkable: isso esburacava o caminho em corredores estreitos. */
   let pts = cells ? cells.map(([gx, gy]) => cellCenter(gx, gy)) : null;
   if(!pts || !pts.length){
-    if(feetWalkable(tx, ty) || (window.MASCARA && maskWalkable(tx, ty)))
-      pts = [[tx, ty]];
+    if(feetWalkable(tx, ty)) pts = [[tx, ty]];
   }
   if(!pts || !pts.length) return;
 
@@ -1646,11 +1650,16 @@ function sfxStep(){
 }
 
 function maskCell(x, y){
-  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
-  return [Math.floor(x / W * MASCARA.w), Math.floor(y / H * MASCARA.h)];
+  const W = $('#mapCanvas').clientWidth || 900;
+  const H = $('#mapCanvas').clientHeight || Math.round(W * CITY.ar);
+  return [
+    Math.max(0, Math.min(MASCARA.w - 1, Math.floor(x / W * MASCARA.w))),
+    Math.max(0, Math.min(MASCARA.h - 1, Math.floor(y / H * MASCARA.h))),
+  ];
 }
 function cellCenter(gx, gy){
-  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
+  const W = $('#mapCanvas').clientWidth || 900;
+  const H = $('#mapCanvas').clientHeight || Math.round(W * CITY.ar);
   return [(gx + 0.5) * W / MASCARA.w, (gy + 0.5) * H / MASCARA.h];
 }
 function maskWalkable(x, y){
@@ -1660,33 +1669,28 @@ function maskWalkable(x, y){
   return MASCARA.rows[gy][gx] === '1';
 }
 
-/* hitbox dos pés: âncora do sprite em ~72% da altura (26×34) → pés ~+2..+6 px.
-   Offsets grandes (+10..+14) empurravam a colisão 2–3 células ao sul e
-   quebravam ruas leste–oeste finas. */
+/* Colisão nos pés: a âncora do sprite (~72% da altura) É o ponto dos pés.
+   Hitbox multi-ponto (6 amostras AND) fragmentava a malha — personagem
+   nascia em “bolsão” feet-safe e não conseguia sair. Um ponto = 1 grafo
+   conexo em toda a máscara. */
 function feetWalkable(x, y){
-  if(!window.MASCARA) return true;
-  for(const [ox, oy] of [[-4,2],[0,2],[4,2],[-4,6],[0,6],[4,6]])
-    if(!maskWalkable(x + ox, y + oy)) return false;
-  return true;
+  return maskWalkable(x, y);
 }
 
 /* acha o ponto andável mais próximo (centro de célula na máscara) */
 function snapWalkable(x, y){
   if(!window.MASCARA || feetWalkable(x, y)) return [x, y];
   const [gx0, gy0] = maskCell(x, y);
-  let fallback = null;
-  for(let r = 0; r < 45; r++){
+  for(let r = 0; r < 60; r++){
     for(let dy = -r; dy <= r; dy++) for(let dx = -r; dx <= r; dx++){
       if(r > 0 && Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
       const gx = gx0 + dx, gy = gy0 + dy;
       if(gx < 0 || gy < 0 || gx >= MASCARA.w || gy >= MASCARA.h) continue;
       if(MASCARA.rows[gy][gx] !== '1') continue;
-      const [nx, ny] = cellCenter(gx, gy);
-      if(feetWalkable(nx, ny)) return [nx, ny];
-      if(!fallback) fallback = [nx, ny];
+      return cellCenter(gx, gy);
     }
   }
-  return fallback || [x, y];
+  return [x, y];
 }
 
 function cameraFollow(dt = 1/60){
@@ -1760,16 +1764,27 @@ function driveStep(now){
   }
 
   const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
+  /* se nasceu/ficou fora da rua, destravar antes de aplicar velocidade */
+  if(!feetWalkable(studentPos.x, studentPos.y)){
+    const sp = snapWalkable(studentPos.x, studentPos.y);
+    placeStudent(sp[0], sp[1]);
+  }
   const sx = vel.x * dt, sy = vel.y * dt;
   const passos = Math.max(1, Math.ceil(Math.hypot(sx, sy) / 3));
+  let moved = false;
   for(let i = 0; i < passos; i++){
     const nx = Math.max(16, Math.min(W - 16, studentPos.x + sx / passos));
     const ny = Math.max(16, Math.min(H - 16, studentPos.y + sy / passos));
     const ox = studentPos.x, oy = studentPos.y;
-    if(feetWalkable(nx, ny)) placeStudent(nx, ny);
-    else if(feetWalkable(nx, oy)){ placeStudent(nx, oy); vel.y = 0; }
-    else if(feetWalkable(ox, ny)){ placeStudent(ox, ny); vel.x = 0; }
+    if(feetWalkable(nx, ny)){ placeStudent(nx, ny); moved = true; }
+    else if(feetWalkable(nx, oy)){ placeStudent(nx, oy); vel.y = 0; moved = true; }
+    else if(feetWalkable(ox, ny)){ placeStudent(ox, ny); vel.x = 0; moved = true; }
     else { vel.x = vel.y = 0; break; }
+  }
+  /* último recurso: input ativo mas colisão trava tudo → snap para o centro da rua */
+  if(!moved && temInput){
+    const sp = snapWalkable(studentPos.x, studentPos.y);
+    if(sp[0] !== studentPos.x || sp[1] !== studentPos.y) placeStudent(sp[0], sp[1]);
   }
 
   if(v > 250){
