@@ -683,15 +683,15 @@
     padding:5px 26px;border-radius:4px;border:1px solid rgba(255,255,255,.3);
     box-shadow:0 4px 12px rgba(0,0,0,.55);text-transform:uppercase;
   }
-  /* personagem do aluno */
+  /* personagem do aluno — escala ~65% + âncora nos pés */
   .student{
-    position:absolute;z-index:5;pointer-events:none;width:40px;height:52px;
-    transform:translate(-50%,-50%) rotate(var(--dir,0deg)) skewX(var(--lean,0deg));
+    position:absolute;z-index:5;pointer-events:none;width:26px;height:34px;
+    transform:translate(-50%,-72%) rotate(var(--dir,0deg)) skewX(var(--lean,0deg));
   }
   .student.walking{transition:none}
   .student img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
   .student.walking img{animation:wig .26s ease-in-out infinite}
-  @keyframes wig{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+  @keyframes wig{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
   /* seta amarela de objetivo (GTA 1) */
   .objective-arrow{
     position:absolute;z-index:6;pointer-events:none;width:0;height:0;
@@ -1507,9 +1507,10 @@ function walkTo(tx, ty){
 
   let cells = window.ROTA && window.MASCARA ? ROTA.aStar(MASCARA, ini, fim) : null;
   if(cells) cells = ROTA.simplificar(MASCARA, cells);
-  const pts = cells
-    ? cells.map(([gx, gy]) => cellCenter(gx, gy))
-    : (feetWalkable(tx, ty) ? [[tx, ty]] : null);
+  let pts = cells
+    ? cells.map(([gx, gy]) => cellCenter(gx, gy)).filter(([px, py]) => feetWalkable(px, py))
+    : null;
+  if(!pts || !pts.length) pts = feetWalkable(tx, ty) ? [[tx, ty]] : null;
   if(!pts || !pts.length) return;
 
   vel.x = vel.y = 0;
@@ -1620,7 +1621,7 @@ function maskWalkable(x, y){
 
 function feetWalkable(x, y){
   if(!window.MASCARA) return true;
-  for(const [ox, oy] of [[-9,11],[0,11],[9,11],[-9,16],[0,16],[9,16]])
+  for(const [ox, oy] of [[-5,10],[0,10],[5,10],[-5,14],[0,14],[5,14]])
     if(!maskWalkable(x + ox, y + oy)) return false;
   return true;
 }
@@ -1658,8 +1659,8 @@ function spawnDust(){
   for(let i = 0; i < 2; i++){
     const el = document.createElement('div');
     el.className = 'fx fx-dust';
-    el.style.left = (studentPos.x + (Math.random() * 10 - 5)) + 'px';
-    el.style.top = (studentPos.y + 14 + Math.random() * 4) + 'px';
+    el.style.left = (studentPos.x + (Math.random() * 8 - 4)) + 'px';
+    el.style.top = (studentPos.y + 8 + Math.random() * 3) + 'px';
     el.addEventListener('animationend', () => el.remove());
     canvas.appendChild(el);
   }
@@ -1668,10 +1669,10 @@ function spawnDust(){
 function checkObjectiveProximity(){
   if(objectivePos.x == null || studentPos.x == null) return;
   const d = Math.hypot(studentPos.x - objectivePos.x, studentPos.y - objectivePos.y);
-  if(d < 60 && !objectivePinged){
+  if(d < 45 && !objectivePinged){
     objectivePinged = true;
     sfxPing();
-  } else if(d >= 80){
+  } else if(d >= 65){
     objectivePinged = false;
   }
 }
