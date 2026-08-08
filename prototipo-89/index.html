@@ -190,6 +190,7 @@
     box-shadow:0 22px 55px rgba(0,0,0,.5), inset 0 0 0 1px rgba(0,0,0,.2);
     margin-bottom:48px;
   }
+  /* fill (não cover): canvas já usa o mesmo AR da arte — cover cortava bordas e desalinhava a máscara */
   .map-art{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block}
   .mask-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;image-rendering:pixelated}
 
@@ -1090,7 +1091,8 @@ const SUBJECTS = [
 
 /* ---------- a cidade única: arte + coordenadas dos 4 distritos ---------- */
 const CITY = {
-  src:'assets/cidade.png', ar:1.792, trophy:[0.500,0.145],
+  /* H/W de cidade.png (3072×5504) — AR exato alinha arte, nós e máscara */
+  src:'assets/cidade.png', ar:5504/3072, trophy:[0.500,0.145],
   districts:{
     cie:{ sign:[0.500,0.987],
       nodes:[[0.140,0.949],[0.282,0.938],[0.855,0.934],[0.539,0.914],[0.611,0.894],[0.096,0.868],[0.417,0.834],[0.283,0.824],[0.130,0.759],[0.562,0.751],[0.858,0.750],[0.356,0.749]] },
@@ -1293,8 +1295,6 @@ function nextMission(){
 }
 
 function renderMap(){
-  feetSafeMask._key = null;
-  feetSafeMask._m = null;
   const canvas = $('#mapCanvas');
   const W = Math.max(340, canvas.clientWidth || 900);
   const { H, per } = cityGeom(W);
@@ -1521,7 +1521,8 @@ function setDirSmooth(vx, vy, dt){
 
 function walkTo(tx, ty){
   let snapped = snapWalkable(tx, ty);
-  if(!feetWalkable(snapped[0], snapped[1])) return;
+  /* aceita fallback de snap mesmo se o hitbox dos pés falhar na borda da rua */
+  if(!feetWalkable(snapped[0], snapped[1]) && !maskWalkable(snapped[0], snapped[1])) return;
   tx = snapped[0]; ty = snapped[1];
   if(studentPos.x == null){ placeStudent(tx, ty); return; }
   if(Math.hypot(tx - studentPos.x, ty - studentPos.y) < 6) return;
@@ -1544,19 +1545,13 @@ function walkTo(tx, ty){
 
   let cells = window.ROTA && window.MASCARA ? ROTA.aStar(MASCARA, ini, fim) : null;
   if(cells) cells = ROTA.simplificar(MASCARA, cells);
-  let pts = cells
-    ? cells.map(([gx, gy]) => cellCenter(gx, gy)).filter(([px, py]) => feetWalkable(px, py))
-    : null;
-  // se o filtro esburacou o caminho, tenta A* só em células feet-safe
-  if(cells && (!pts || pts.length < 2) && window.ROTA){
-    const safe = feetSafeMask();
-    if(safe){
-      let c2 = ROTA.aStar(safe, ini, fim);
-      if(c2) c2 = ROTA.simplificar(safe, c2);
-      pts = c2 ? c2.map(([gx, gy]) => cellCenter(gx, gy)) : null;
-    }
+  /* waypoints = centros das células da máscara (já são rua). Não filtrar por
+     feetWalkable: isso esburacava o caminho em corredores estreitos. */
+  let pts = cells ? cells.map(([gx, gy]) => cellCenter(gx, gy)) : null;
+  if(!pts || !pts.length){
+    if(feetWalkable(tx, ty) || (window.MASCARA && maskWalkable(tx, ty)))
+      pts = [[tx, ty]];
   }
-  if(!pts || !pts.length) pts = feetWalkable(tx, ty) ? [[tx, ty]] : null;
   if(!pts || !pts.length) return;
 
   vel.x = vel.y = 0;
@@ -1665,48 +1660,33 @@ function maskWalkable(x, y){
   return MASCARA.rows[gy][gx] === '1';
 }
 
+/* hitbox dos pés: âncora do sprite em ~72% da altura (26×34) → pés ~+2..+6 px.
+   Offsets grandes (+10..+14) empurravam a colisão 2–3 células ao sul e
+   quebravam ruas leste–oeste finas. */
 function feetWalkable(x, y){
   if(!window.MASCARA) return true;
-  for(const [ox, oy] of [[-5,10],[0,10],[5,10],[-5,14],[0,14],[5,14]])
+  for(const [ox, oy] of [[-4,2],[0,2],[4,2],[-4,6],[0,6],[4,6]])
     if(!maskWalkable(x + ox, y + oy)) return false;
   return true;
 }
 
-/* máscara só com células cujo centro passa nos pés (cache invalidado no resize) */
-function feetSafeMask(){
-  if(!window.MASCARA) return null;
-  const W = $('#mapCanvas').clientWidth, H = $('#mapCanvas').clientHeight;
-  const key = W + 'x' + H + ':' + MASCARA.w + 'x' + MASCARA.h;
-  if(feetSafeMask._key === key && feetSafeMask._m) return feetSafeMask._m;
-  const rows = [];
-  for(let gy = 0; gy < MASCARA.h; gy++){
-    let row = '';
-    for(let gx = 0; gx < MASCARA.w; gx++){
-      if(MASCARA.rows[gy][gx] !== '1'){ row += '0'; continue; }
-      const [cx, cy] = cellCenter(gx, gy);
-      row += feetWalkable(cx, cy) ? '1' : '0';
-    }
-    rows.push(row);
-  }
-  feetSafeMask._key = key;
-  feetSafeMask._m = { w: MASCARA.w, h: MASCARA.h, rows };
-  return feetSafeMask._m;
-}
-
-/* acha o ponto andável mais próximo (para parar na calçada em frente ao prédio) */
+/* acha o ponto andável mais próximo (centro de célula na máscara) */
 function snapWalkable(x, y){
   if(!window.MASCARA || feetWalkable(x, y)) return [x, y];
   const [gx0, gy0] = maskCell(x, y);
-  for(let r = 1; r < 45; r++){
+  let fallback = null;
+  for(let r = 0; r < 45; r++){
     for(let dy = -r; dy <= r; dy++) for(let dx = -r; dx <= r; dx++){
-      if(Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      if(r > 0 && Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
       const gx = gx0 + dx, gy = gy0 + dy;
       if(gx < 0 || gy < 0 || gx >= MASCARA.w || gy >= MASCARA.h) continue;
+      if(MASCARA.rows[gy][gx] !== '1') continue;
       const [nx, ny] = cellCenter(gx, gy);
       if(feetWalkable(nx, ny)) return [nx, ny];
+      if(!fallback) fallback = [nx, ny];
     }
   }
-  return [x, y];
+  return fallback || [x, y];
 }
 
 function cameraFollow(dt = 1/60){
